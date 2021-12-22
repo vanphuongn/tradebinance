@@ -1,0 +1,18 @@
+{
+  "name": "binance_bot",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index_eth.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "phung",
+  "license": "ISC",
+  "dependencies": {
+    "binance-api-node": "^0.11.28",
+    "express": "^4.17.2",
+    "kdj": "^1.0.5",
+    "node-telegram-bot-api": "^0.56.0",
+    "trading-indicator": "^1.0.4-beta"
+  }
+}
