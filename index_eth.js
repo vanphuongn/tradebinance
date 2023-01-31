@@ -514,7 +514,7 @@ const updatePrice = async(timeRequest )=>{
                 //	coinName= coinNameChars[0]+ "/"+ "USDT"
 
                 }
-                await wait(1000);
+                await wait(2000);
         }
 
 
@@ -728,7 +728,7 @@ const waitSellOrderCompletion = async()=>{
 			// 	console.log("Doi mua");
 			// }
 			// if(buySuccess === 'failure') continue; 
-		//	bot.sendMessage(chatId," =============Ket thuc 1 vong requets ======" );
+			bot.sendMessage(chatId," =============Ket thuc 1 vong requets ======" );
 		await wait(10000);
 	}
 
