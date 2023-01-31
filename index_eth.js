@@ -298,7 +298,7 @@ const updatePriceForBuy =async (coinName2,timeRequest)=>{
                    var ema10 = EMA.calculate({period : 10, values : prices})
                    var ema20 = EMA.calculate({period : 20, values : prices})
 
-				
+				   if((timeRequest == "5m") || (timeRequest == "15m") )
 					
 				   {
 						
@@ -314,28 +314,15 @@ const updatePriceForBuy =async (coinName2,timeRequest)=>{
 							   {
 								//	console.log("Trung coin name" + coinName2)
 									if(ema10 > ema20){
-										if((timeRequest == "5m") || (timeRequest == "15m") ){
-											bot.sendMessage(chatId,"Canh bao: Can Than Lo  " + coinName2 );
-											bot.sendMessage(chatId,"Canh bao: Can Than Lo  " + coinName2);
-										}
-										else if((timeRequest == "30m") || (timeRequest == "1h") )
-										{
-											bot.sendMessage(chatId,"Canh bao: Cat lo ngay  " + timeRequest + "   " + coinName2 );
-											bot.sendMessage(chatId,"Canh bao: Cat lo ngay  " + timeRequest + "   " + coinName2 );
-										}
+										bot.sendMessage(chatId,"Canh bao: Can Than Lo  " + coinName2 );
+										bot.sendMessage(chatId,"Canh bao: Can Than Lo  " + coinName2);
 									}
 							   }else if(String(currentSymbols[i].positionSide) == "LONG")
 							   {
 								//	console.log("Trung coin name" + coinName2)
-									if((timeRequest == "5m") || (timeRequest == "15m") )
-									{
-										bot.sendMessage(chatId,"Canh bao: Can Than Lo  " + coinName2 );
+									if(ema10 < ema20){
 										bot.sendMessage(chatId,"Canh bao: Can Than Lo  " + coinName2);
-									}
-									else if((timeRequest == "30m") || (timeRequest == "1h") )
-									{
-										bot.sendMessage(chatId,"Canh bao: Cat lo ngay  " + timeRequest + "   " + coinName2 );
-										bot.sendMessage(chatId,"Canh bao: Cat lo ngay  " + timeRequest + "   " + coinName2 );
+										bot.sendMessage(chatId,"Canh bao: Can Than Lo  "+ coinName2 );
 									}
 							   }
 						   }
