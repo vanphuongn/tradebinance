@@ -209,6 +209,7 @@ const updatePriceForSell =async (coinName2,timeRequest, so_nen_check_giao_cat)=>
 						 {
 							console.log( coinName2 +"  " +" phan ki giam i :" + intersect_macd_index_array[i]
 							+ "  i+1  : " + intersect_macd_index_array[i+1]
+							+ " timeRequest  " + timeRequest
 							+ " macdData  "+ macdData2[[macdData2.length - 1] - intersect_macd_index_array[i]].MACD
 							+ " macdData  old "+ macdData2[[macdData2.length - 1] - intersect_macd_index_array[i+1]].MACD
 							+ "   price  :" + priceDatas[[priceDatas.length - 1] - intersect_macd_index_array[i]].close
@@ -299,9 +300,7 @@ const updatePriceForBuy =async (coinName2,timeRequest)=>{
                    var ema20 = EMA.calculate({period : 20, values : prices})
 
 				   if((timeRequest == "5m") || (timeRequest == "15m") )
-					
 				   {
-						
 					//	console.log(  await client.futuresOpenOrders() );
 			   
 						for(var i = 0; currentSymbols.length ;i++){
@@ -366,7 +365,8 @@ const updatePriceForBuy =async (coinName2,timeRequest)=>{
                             {
                                 total_coin_phanky+=1
                                console.log( coinName2 + " phan ki tang i :" + intersect_macd_index_array[i]
-                               + "  i+1  : " + intersect_macd_index_array[i+1]
+							   + "  i+1  : " + intersect_macd_index_array[i+1]
+							   + " timeRequest  " + timeRequest
                                + " macdData  "+ macdData2[[macdData2.length - 1] - intersect_macd_index_array[i]].MACD
                                + " macdData  old "+ macdData2[[macdData2.length - 1] - intersect_macd_index_array[i+1]].MACD
                                + "  lastestPrice  " + lastPrice
