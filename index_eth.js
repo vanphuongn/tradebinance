@@ -219,7 +219,7 @@ const updatePriceForSell =async (coinName2,timeRequest, so_nen_check_giao_cat)=>
 							+ "   oldtime  "  + oldTime
 							)
 	
-						 	if( intersect_macd_index_array[i] < 15)
+						 	//if( intersect_macd_index_array[i] < 15)
 							{
 						 		hasPhanKy = true;
 						 	}
@@ -360,7 +360,7 @@ const updatePriceForBuy =async (coinName2,timeRequest)=>{
 								if((timeRequest == "5m") || (timeRequest == "15m") )
 								{
 								  
-									if( intersect_macd_index_array[i] < 15)
+							//		if( intersect_macd_index_array[i] < 15)
 								   {
 										hasPhanKy = true;
 									}
@@ -416,15 +416,18 @@ const updatePrice = async(timeRequest )=>{
                     try{
                 //  var test5m = await updatePriceForBuy("BTCUSDT", "4h")
                // console.log("test5m " +coinName2)
-			   				  // check for buy
+								 // check for buy
+				//	var test3m =   await updatePriceForBuy(coinName2, "3m")
                     var test5m =   await updatePriceForBuy(coinName2, "5m")
                       var test15m =  await  updatePriceForBuy(coinName2, "15m")
                       var test30m =  await  updatePriceForBuy(coinName2, "30m")
                       var test1h =  await  updatePriceForBuy(coinName2, "1h")
 
-                      if((test30m.hasPhanKy == true)||(test1h.hasPhanKy == true))
+                      if((test30m.hasPhanKy == true)||(test1h.hasPhanKy == true) || ((test5m.hasPhanKy == true)&&(test15m.hasPhanKy == true)))
                       {
-                         if((test5m.hasPhanKy == true)||(test15m.hasPhanKy == true))
+						 if((test5m.hasPhanKy == true)||(test15m.hasPhanKy == true)
+					//	 ||(test3m.hasPhanKy == true)
+						 )
                          {
                              console.log("test5m phan ky buy " +test5m.hasPhanKy+ "   logData2  : "+ test5m.logStr)
                             var logData = test5m.logStr + test15m.logStr + test30m.logStr + test1h.logStr;
@@ -433,14 +436,17 @@ const updatePrice = async(timeRequest )=>{
                       }
 
 					  // check for shell
+					//  var test3mShell =  await updatePriceForSell(coinName2, "3m", 30)
 					  var test5mShell =  await updatePriceForSell(coinName2, "5m", 30)
                       var test15mShell =  await   updatePriceForSell(coinName2, "15m",30)
                       var test30mShell = await   updatePriceForSell(coinName2, "30m",30)
                       var test1hShell =  await  updatePriceForSell(coinName2, "1h",30)
 				//	  console.log(coinName2 +"    test5m " +test5mShell.hasPhanKy+ "   logData2  : "+ test5mShell.logStr)
-                      if((test30mShell.hasPhanKy == true)||(test1hShell.hasPhanKy == true))
+                      if((test30mShell.hasPhanKy == true)||(test1hShell.hasPhanKy == true) || ((test5mShell.hasPhanKy == true)&&(test15mShell.hasPhanKy == true))) 
                       {
-                         if((test5mShell.hasPhanKy == true)||(test15mShell.hasPhanKy == true))
+						 if((test5mShell.hasPhanKy == true)||(test15mShell.hasPhanKy == true)
+					//	  || (test3mShell.hasPhanKy == true)
+						  )
                          {
 							console.log("test5m2 " +test5mShell.hasPhanKy+ "   logData2  : "+ test5mShell.logStr)
                             var logData = test5mShell.logStr + test15mShell.logStr + test30mShell.logStr + test1hShell.logStr;
@@ -456,7 +462,7 @@ const updatePrice = async(timeRequest )=>{
                 //	coinName= coinNameChars[0]+ "/"+ "USDT"
 
                 }
-                await wait(2000);
+                await wait(1000);
         }
 
 
@@ -622,11 +628,11 @@ const waitSellOrderCompletion = async()=>{
 	let buySuccess = null;
 
 	//	await updateEMA();
-
+	bot.sendMessage(chatId," =============Start 1 vong requets ======" );
 	while(true)
 	{
 			log_str = "";
-			bot.sendMessage(chatId," =============Start 1 vong requets ======" );
+		//	bot.sendMessage(chatId," =============Start 1 vong requets ======" );
 			 try{
 				
 			//	await sell();
@@ -669,7 +675,7 @@ const waitSellOrderCompletion = async()=>{
 			// 	console.log("Doi mua");
 			// }
 			// if(buySuccess === 'failure') continue; 
-			bot.sendMessage(chatId," =============Ket thuc 1 vong requets ======" );
+		//	bot.sendMessage(chatId," =============Ket thuc 1 vong requets ======" );
 		await wait(10000);
 	}
 
