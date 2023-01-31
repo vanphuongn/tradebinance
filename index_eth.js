@@ -305,7 +305,7 @@ const updatePriceForBuy =async (coinName2,timeRequest)=>{
 				   {
 					//	console.log(  await client.futuresOpenOrders() );
 			   
-						for(var i = 0; currentSymbols.length ;i++)
+						for(var i = 0; i < currentSymbols.length ;i++)
 						{
 					   //	var symbol = currentSymbols[i]
 						 // console.log(   currentSymbols[i].symbol);
@@ -368,7 +368,7 @@ const updatePriceForBuy =async (coinName2,timeRequest)=>{
                     var hasPhanKy = false;
                     var logStr = "";
 
-                  //  console.log("intersect_macd_index_array "+ intersect_macd_index_array.length)
+                     //  console.log("intersect_macd_index_array "+ intersect_macd_index_array.length)
                    for(var i = 0; i < intersect_macd_index_array.length-1; i++)
                    {
                   //       console.log("  intersect_macd_index_array i  " + intersect_macd_index_array[i])
@@ -380,15 +380,15 @@ const updatePriceForBuy =async (coinName2,timeRequest)=>{
                             var oldTime = timeConverter(priceDatas[[priceDatas.length - 1] - intersect_macd_index_array[i+1]].closeTime)
                             var lastPrice = priceDatas[priceDatas.length - 1].close
 
-                            if((lastPrice / min) < 1.1 && (intersect_macd_index_array[i]  < 30)
-							//&& (ema10[ema10.length-1] > ema20[ema20.length-1])
+                            if((lastPrice / min) < 1.15 && (intersect_macd_index_array[i]  < 30)
+                         	&& (ema10[ema10.length-1] > ema20[ema20.length-1])
 								&&  (macdData2[(macdData2.length -1)].MACD > macdData2[(macdData2.length -1)].signal)
                             )
                             {
                                 total_coin_phanky+=1
                                console.log( coinName2 + " phan ki tang i :" + intersect_macd_index_array[i]
-							   + "  i+1  : " + intersect_macd_index_array[i+1]
-							   + " timeRequest  " + timeRequest
+                               + "  i+1  : " + intersect_macd_index_array[i+1]
+                               + "  timeRequest  " + timeRequest
                                + " macdData  "+ macdData2[[macdData2.length - 1] - intersect_macd_index_array[i]].MACD
                                + " macdData  old "+ macdData2[[macdData2.length - 1] - intersect_macd_index_array[i+1]].MACD
                                + "  lastestPrice  " + lastPrice
@@ -403,6 +403,7 @@ const updatePriceForBuy =async (coinName2,timeRequest)=>{
 
                                 coinDivergenceList.push(coinName2)
                                 logStr += total_coin_phanky+ "  "+  timeRequest +", phan ki tang " + coinName2 +"  "+ intersect_macd_index_array[i]+"   " + lastPrice +"\n"
+                                                           console.log( logStr)
                              //   bot.sendMessage(chatId,logStr );
 								// if((timeRequest == "5m") || (timeRequest == "15m") ){
 								// 	if(intersect_macd_index_array[i] < 20){
@@ -411,7 +412,7 @@ const updatePriceForBuy =async (coinName2,timeRequest)=>{
 								// }
 								if((timeRequest == "5m") || (timeRequest == "15m") )
 								{
-								  
+
 									if( intersect_macd_index_array[i] < 15)
 								   {
 										hasPhanKy = true;
@@ -421,7 +422,7 @@ const updatePriceForBuy =async (coinName2,timeRequest)=>{
 								   hasPhanKy = true;
 								}
                             }
-                        } 
+                        }
 
                      //   console.log("  i  " + i )
                    }
