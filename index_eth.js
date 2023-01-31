@@ -455,10 +455,11 @@ const updatePrice = async(timeRequest )=>{
          {
 
 			   var coinName2 = pricesArr[coinIndex].toString() ;
-			   console.log("CoinName " +coinName2 )
+			 
             //	var coinName2 = "BNBUSDT"
                if(coinName2.includes("USDT"))
                 {
+					console.log("CoinName " +coinName2 )
                     try{
                 //  var test5m = await updatePriceForBuy("BTCUSDT", "4h")
                // console.log("test5m " +coinName2)
