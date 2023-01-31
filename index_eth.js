@@ -117,6 +117,7 @@ requestTime = "30m"
 var total_coin_phanky = 0
 var coinDivergenceList = []
 so_nen_check_giao_cat = 20
+currentSymbols = []
 
 const updatePriceForSell =async (coinName2,timeRequest, so_nen_check_giao_cat)=>{
 	try{
@@ -201,8 +202,6 @@ const updatePriceForSell =async (coinName2,timeRequest, so_nen_check_giao_cat)=>
 					{
 						total_coin_phanky+=1
 
-
-				
 					//	bot.sendMessage(chatId, total_coin_phanky + "  " + timeRequest+  ", phan ki ban " + coinName2 +"  "+ intersect_macd_index_array[i]+"   " + lastPrice);
 						logStr += total_coin_phanky+ "  "+  timeRequest +", phan ki giam " + coinName2 +"  "+ intersect_macd_index_array[i]+"   " + lastPrice +"\n"
 					//	bot.sendMessage(chatId,logStr );
@@ -301,8 +300,7 @@ const updatePriceForBuy =async (coinName2,timeRequest)=>{
 
 				   if((timeRequest == "5m") || (timeRequest == "15m") )
 					{
-						currentSymbols = []
-						currentSymbols = await client.futuresOpenOrders()
+						
 					//	console.log(  await client.futuresOpenOrders() );
 			   
 						for(var i = 0; currentSymbols.length ;i++){
@@ -311,17 +309,18 @@ const updatePriceForBuy =async (coinName2,timeRequest)=>{
 						 // console.log( currentSymbols[i].positionSide);
 						   if(coinName2 ==  currentSymbols[i].symbol)
 						   {
-							   
 							   if(String(currentSymbols[i].positionSide) == "SHORT")
 							   {
 								//	console.log("Trung coin name" + coinName2)
 									if(ema10 > ema20){
+										bot.sendMessage(chatId,"Canh bao: Can Than Lo" );
 										bot.sendMessage(chatId,"Canh bao: Can Than Lo" );
 									}
 							   }else if(String(currentSymbols[i].positionSide) == "LONG")
 							   {
 								//	console.log("Trung coin name" + coinName2)
 									if(ema10 < ema20){
+										bot.sendMessage(chatId,"Canh bao: Can Than Lo" );
 										bot.sendMessage(chatId,"Canh bao: Can Than Lo" );
 									}
 							   }
@@ -433,10 +432,12 @@ const updatePrice = async(timeRequest )=>{
 		let pricesArr = Object.keys(prices);
          total_coin_phanky = 0
 		 coinDivergenceList = []
-		 
+
+		 currentSymbols = []
+		currentSymbols = await client.futuresOpenOrders()
 		//  currentSymbols = []
 		//  currentSymbols = await client.futuresOpenOrders()
-		//  console.log(  await client.futuresOpenOrders() );
+		 console.log(  currentSymbols );
 
 		//  for(var i = 0; currentSymbols.length ;i++){
 		// //	var symbol = currentSymbols[i]
