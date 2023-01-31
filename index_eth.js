@@ -245,7 +245,7 @@ const updatePriceForSell =async (coinName2,timeRequest, so_nen_check_giao_cat)=>
 const updatePriceForBuy =async (coinName2,timeRequest)=>{
         try{
 
-               //    console.log("timeRequest  " + timeRequest + "  , coinName :  " +coinName2 )
+         //         console.log("timeRequest  " + timeRequest + "  , coinName :  " +coinName2 )
                 //	let macdData  = await macd(12,26,9,"close", "binance", "BNB/USDT",timeRequest,true);
 
                    let priceDatas =   await client.candles({ symbol: coinName2, limit:1000,interval:timeRequest })
@@ -298,6 +298,36 @@ const updatePriceForBuy =async (coinName2,timeRequest)=>{
                    var macdData2 = MACD.calculate(macdInput)
                    var ema10 = EMA.calculate({period : 10, values : prices})
                    var ema20 = EMA.calculate({period : 20, values : prices})
+
+				   if((timeRequest == "5m") || (timeRequest == "15m") )
+					{
+						currentSymbols = []
+						currentSymbols = await client.futuresOpenOrders()
+					//	console.log(  await client.futuresOpenOrders() );
+			   
+						for(var i = 0; currentSymbols.length ;i++){
+					   //	var symbol = currentSymbols[i]
+						 // console.log(   currentSymbols[i].symbol);
+						 // console.log( currentSymbols[i].positionSide);
+						   if(coinName2 ==  currentSymbols[i].symbol)
+						   {
+							   
+							   if(String(currentSymbols[i].positionSide) == "SHORT")
+							   {
+								//	console.log("Trung coin name" + coinName2)
+									if(ema10 > ema20){
+										bot.sendMessage(chatId,"Canh bao: Can Than Lo" );
+									}
+							   }else if(String(currentSymbols[i].positionSide) == "LONG")
+							   {
+								//	console.log("Trung coin name" + coinName2)
+									if(ema10 < ema20){
+										bot.sendMessage(chatId,"Canh bao: Can Than Lo" );
+									}
+							   }
+						   }
+						}
+					}
 
                //  console.log("macd :"+JSON.stringify(macdData2))
                  // console.log("macd length:"+macdData2.length)
@@ -402,8 +432,21 @@ const updatePrice = async(timeRequest )=>{
 		prices = await client.futuresPrices();
 		let pricesArr = Object.keys(prices);
          total_coin_phanky = 0
-	     coinDivergenceList = []
+		 coinDivergenceList = []
+		 
+		//  currentSymbols = []
+		//  currentSymbols = await client.futuresOpenOrders()
+		//  console.log(  await client.futuresOpenOrders() );
 
+		//  for(var i = 0; currentSymbols.length ;i++){
+		// //	var symbol = currentSymbols[i]
+		// 	console.log(   currentSymbols[i].symbol);
+		// 	console.log( currentSymbols[i].positionSide);
+			
+		//  }
+		// if(String(currentSymbols[i].symbol) == "ANTUSDT"){
+		// 	console.log(  "Pghuongdz")
+		// }
 
        for(var coinIndex = 0; coinIndex < pricesArr.length -1; coinIndex++)
          {
