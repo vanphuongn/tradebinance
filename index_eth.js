@@ -313,15 +313,15 @@ const updatePriceForBuy =async (coinName2,timeRequest)=>{
 							   {
 								//	console.log("Trung coin name" + coinName2)
 									if(ema10 > ema20){
-										bot.sendMessage(chatId,"Canh bao: Can Than Lo" + coinName2 );
-										bot.sendMessage(chatId,"Canh bao: Can Than Lo" + coinName2);
+										bot.sendMessage(chatId,"Canh bao: Can Than Lo  " + coinName2 );
+										bot.sendMessage(chatId,"Canh bao: Can Than Lo  " + coinName2);
 									}
 							   }else if(String(currentSymbols[i].positionSide) == "LONG")
 							   {
 								//	console.log("Trung coin name" + coinName2)
 									if(ema10 < ema20){
-										bot.sendMessage(chatId,"Canh bao: Can Than Lo" + coinName2);
-										bot.sendMessage(chatId,"Canh bao: Can Than Lo"+ coinName2 );
+										bot.sendMessage(chatId,"Canh bao: Can Than Lo  " + coinName2);
+										bot.sendMessage(chatId,"Canh bao: Can Than Lo  "+ coinName2 );
 									}
 							   }
 						   }
