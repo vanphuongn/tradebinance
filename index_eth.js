@@ -380,24 +380,26 @@ const updatePriceForBuy =async (coinName2,timeRequest)=>{
                             var oldTime = timeConverter(priceDatas[[priceDatas.length - 1] - intersect_macd_index_array[i+1]].closeTime)
                             var lastPrice = priceDatas[priceDatas.length - 1].close
 
+							console.log( coinName2 + " phan ki tang i :" + intersect_macd_index_array[i]
+							+ "  i+1  : " + intersect_macd_index_array[i+1]
+							+ " timeRequest  " + timeRequest
+							+ " macdData  "+ macdData2[[macdData2.length - 1] - intersect_macd_index_array[i]].MACD
+							+ " macdData  old "+ macdData2[[macdData2.length - 1] - intersect_macd_index_array[i+1]].MACD
+							+ "  lastestPrice  " + lastPrice
+							+ "   price  :" + priceDatas[[priceDatas.length - 1] - intersect_macd_index_array[i]].close
+
+							+ "   time  "  + time
+							+ "  old price  :" + priceDatas[[priceDatas.length - 1] - intersect_macd_index_array[i+1]].close
+							+ "   oldtime  "  + oldTime
+							)
+							
                             if((lastPrice / min) < 1.1 && (intersect_macd_index_array[i]  < 30)
 							&& (ema10[ema10.length-1] > ema20[ema20.length-1])
 								&&  (macdData2[(macdData2.length -1)].MACD > macdData2[(macdData2.length -1)].signal)
                             )
                             {
                                 total_coin_phanky+=1
-                               console.log( coinName2 + " phan ki tang i :" + intersect_macd_index_array[i]
-							   + "  i+1  : " + intersect_macd_index_array[i+1]
-							   + " timeRequest  " + timeRequest
-                               + " macdData  "+ macdData2[[macdData2.length - 1] - intersect_macd_index_array[i]].MACD
-                               + " macdData  old "+ macdData2[[macdData2.length - 1] - intersect_macd_index_array[i+1]].MACD
-                               + "  lastestPrice  " + lastPrice
-                               + "   price  :" + priceDatas[[priceDatas.length - 1] - intersect_macd_index_array[i]].close
-
-                               + "   time  "  + time
-                               + "  old price  :" + priceDatas[[priceDatas.length - 1] - intersect_macd_index_array[i+1]].close
-                               + "   oldtime  "  + oldTime
-                               )
+                             
 
                             //   console.log("Ema10 " + (ema10))
 
