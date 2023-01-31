@@ -381,7 +381,7 @@ const updatePriceForBuy =async (coinName2,timeRequest)=>{
                             var lastPrice = priceDatas[priceDatas.length - 1].close
 
                             if((lastPrice / min) < 1.1 && (intersect_macd_index_array[i]  < 30)
-							&& (ema10[ema10.length-1] > ema20[ema20.length-1])
+							//&& (ema10[ema10.length-1] > ema20[ema20.length-1])
 								&&  (macdData2[(macdData2.length -1)].MACD > macdData2[(macdData2.length -1)].signal)
                             )
                             {
@@ -454,48 +454,33 @@ const updatePrice = async(timeRequest )=>{
 		prices = await client.futuresPrices();
 		let pricesArr = Object.keys(prices);
          total_coin_phanky = 0
-		 coinDivergenceList = []
+	     coinDivergenceList = []
 
-		
+
 		currentSymbols = await client.futuresOpenOrders()
 		//  currentSymbols = []
 		//  currentSymbols = await client.futuresOpenOrders()
-		 console.log(  await client.futuresOpenOrders());
-		
-		//  for(var i = 0; currentSymbols.length ;i++){
-		// //	var symbol = currentSymbols[i]
-		// 	console.log(   currentSymbols[i].symbol);
-		// 	console.log( currentSymbols[i].positionSide);
-			
-		//  }
-		// if(String(currentSymbols[i].symbol) == "ANTUSDT"){
-		// 	console.log(  "Pghuongdz")
-		// }
+		 console.log(currentSymbols);
 
-       for(var coinIndex = 0; coinIndex < pricesArr.length -1; coinIndex++)
+       for(var coinIndex = 0; coinIndex < pricesArr.length; coinIndex++)
          {
-
-			   var coinName2 = pricesArr[coinIndex].toString() ;
-			 
-            //	var coinName2 = "BNBUSDT"
+               var coinName2 = pricesArr[coinIndex].toString() ;
+            //	var coinName = "BNBUSDT"
                if(coinName2.includes("USDT"))
                 {
-					console.log("CoinName " +coinName2 )
                     try{
                 //  var test5m = await updatePriceForBuy("BTCUSDT", "4h")
                // console.log("test5m " +coinName2)
-								 // check for buy
-				//	var test3m =   await updatePriceForBuy(coinName2, "3m")
+			   				  // check for buy
+			   		//var test3m =   await updatePriceForBuy(coinName2, "3m")
                     var test5m =   await updatePriceForBuy(coinName2, "5m")
                       var test15m =  await  updatePriceForBuy(coinName2, "15m")
                       var test30m =  await  updatePriceForBuy(coinName2, "30m")
                       var test1h =  await  updatePriceForBuy(coinName2, "1h")
 
-                      if((test30m.hasPhanKy == true)||(test1h.hasPhanKy == true) || ((test5m.hasPhanKy == true)&&(test15m.hasPhanKy == true)))
+                      if((test30m.hasPhanKy == true)||(test1h.hasPhanKy == true)||((test5m.hasPhanKy == true)&&(test15m.hasPhanKy == true)))
                       {
-						 if((test5m.hasPhanKy == true)||(test15m.hasPhanKy == true)
-					//	 ||(test3m.hasPhanKy == true)
-						 )
+                         if((test5m.hasPhanKy == true)||(test15m.hasPhanKy == true))
                          {
                              console.log("test5m phan ky buy " +test5m.hasPhanKy+ "   logData2  : "+ test5m.logStr)
                             var logData = test5m.logStr + test15m.logStr + test30m.logStr + test1h.logStr;
@@ -504,17 +489,15 @@ const updatePrice = async(timeRequest )=>{
                       }
 
 					  // check for shell
-					//  var test3mShell =  await updatePriceForSell(coinName2, "3m", 30)
+				//	  var test3mShell =  await updatePriceForSell(coinName2, "3m", 30)
 					  var test5mShell =  await updatePriceForSell(coinName2, "5m", 30)
                       var test15mShell =  await   updatePriceForSell(coinName2, "15m",30)
                       var test30mShell = await   updatePriceForSell(coinName2, "30m",30)
                       var test1hShell =  await  updatePriceForSell(coinName2, "1h",30)
 				//	  console.log(coinName2 +"    test5m " +test5mShell.hasPhanKy+ "   logData2  : "+ test5mShell.logStr)
-                      if((test30mShell.hasPhanKy == true)||(test1hShell.hasPhanKy == true) || ((test5mShell.hasPhanKy == true)&&(test15mShell.hasPhanKy == true))) 
+                      if((test30mShell.hasPhanKy == true)||(test1hShell.hasPhanKy == true) || ((test5mShell.hasPhanKy == true)&&(test15mShell.hasPhanKy == true)))
                       {
-						 if((test5mShell.hasPhanKy == true)||(test15mShell.hasPhanKy == true)
-					//	  || (test3mShell.hasPhanKy == true)
-						  )
+                         if((test5mShell.hasPhanKy == true)||(test15mShell.hasPhanKy == true))
                          {
 							console.log("test5m2 " +test5mShell.hasPhanKy+ "   logData2  : "+ test5mShell.logStr)
                             var logData = test5mShell.logStr + test15mShell.logStr + test30mShell.logStr + test1hShell.logStr;
@@ -524,7 +507,7 @@ const updatePrice = async(timeRequest )=>{
 
                       //  console.log("value  " + value)
                     }catch(err){
-                //        continue;
+                        continue;
                     }
                 //	coinNameChars = coinName.split("USDT");
                 //	coinName= coinNameChars[0]+ "/"+ "USDT"
@@ -539,6 +522,7 @@ const updatePrice = async(timeRequest )=>{
        console.log(err + "\n");
     }
 }
+
 
 // tinh so coin co the mua va gia
 const calculateBuyQuantity = async()=>{
