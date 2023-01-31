@@ -303,7 +303,8 @@ const updatePriceForBuy =async (coinName2,timeRequest)=>{
 				   {
 					//	console.log(  await client.futuresOpenOrders() );
 			   
-						for(var i = 0; currentSymbols.length ;i++){
+						for(var i = 0; currentSymbols.length ;i++)
+						{
 					   //	var symbol = currentSymbols[i]
 						 // console.log(   currentSymbols[i].symbol);
 						 // console.log( currentSymbols[i].positionSide);
@@ -434,7 +435,7 @@ const updatePrice = async(timeRequest )=>{
          total_coin_phanky = 0
 		 coinDivergenceList = []
 
-		 currentSymbols = []
+		
 		currentSymbols = await client.futuresOpenOrders()
 		//  currentSymbols = []
 		//  currentSymbols = await client.futuresOpenOrders()
@@ -454,7 +455,7 @@ const updatePrice = async(timeRequest )=>{
          {
 
 			   var coinName2 = pricesArr[coinIndex].toString() ;
-			//   console.log("CoinName " +coinName2 )
+			   console.log("CoinName " +coinName2 )
             //	var coinName2 = "BNBUSDT"
                if(coinName2.includes("USDT"))
                 {
