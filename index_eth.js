@@ -702,7 +702,7 @@ const waitSellOrderCompletion = async()=>{
 	while(true)
 	{
 			log_str = "";
-		//	bot.sendMessage(chatId," =============Start 1 vong requets ======" );
+			bot.sendMessage(chatId," =============Start 1 vong requets ======" );
 			 try{
 				
 			//	await sell();
