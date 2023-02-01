@@ -135,7 +135,7 @@ const updatePriceForSell =async (coinName2,timeRequest, so_nen_check_giao_cat)=>
 				prices.push(Number(priceDatas[i].close))
 			}
 
-			for(var i = 30; i >0; i--)
+			for(var i = 10; i >0; i--)
 			{
 		//	    console.log(i + "    priceDatas " + priceDatas[i].close)
 				last50Prices.push(Number(priceDatas[priceDatas.length-i].high))
@@ -273,8 +273,9 @@ const updatePriceForBuy =async (coinName2,timeRequest)=>{
                 	   //  console.log(coinName2+ "   "+i + "    priceDatas " + priceDatas[i].close)
                         prices.push(Number(priceDatas[i].close))
                     }
+					
 
-                    for(var i = 30; i >0; i--)
+                    for(var i = 10; i >0; i--)
                     {
                 //	    console.log(i + "    priceDatas " + priceDatas[i].close)
                         last50Prices.push(Number(priceDatas[priceDatas.length-i].low))
