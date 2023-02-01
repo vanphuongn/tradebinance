@@ -250,8 +250,8 @@ const updatePriceForSell =async (coinName2,timeRequest, so_nen_check_giao_cat)=>
 
 const updatePriceForBuy =async (coinName2,timeRequest)=>{
         try{
-
-         //         console.log("timeRequest  " + timeRequest + "  , coinName :  " +coinName2 )
+					
+                 bot.sendMessage("timeRequest  " + timeRequest + "  , coinName :  " +coinName2 )
                 //	let macdData  = await macd(12,26,9,"close", "binance", "BNB/USDT",timeRequest,true);
 
                    let priceDatas =   await client.candles({ symbol: coinName2, limit:1000,interval:timeRequest })
