@@ -703,7 +703,7 @@ const waitSellOrderCompletion = async()=>{
 	while(true)
 	{
 			log_str = "";
-			bot.sendMessage(chatId," =============Start 1 vong requets ======" );
+		//	bot.sendMessage(chatId," =============Start 1 vong requets ======" );
 			 try{
 				
 			//	await sell();
@@ -746,7 +746,7 @@ const waitSellOrderCompletion = async()=>{
 			// 	console.log("Doi mua");
 			// }
 			// if(buySuccess === 'failure') continue; 
-			bot.sendMessage(chatId," =============Ket thuc 1 vong requets ======" );
+		//	bot.sendMessage(chatId," =============Ket thuc 1 vong requets ======" );
 		await wait(10000);
 	}
 
