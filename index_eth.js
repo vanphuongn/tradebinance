@@ -127,6 +127,8 @@ const updatePriceForSell =async (coinName2,timeRequest, so_nen_check_giao_cat)=>
 			var intersect_macd_index_array = []
 			var prices = []
 			var last50Prices = []
+			
+
 			for(var i =0; i < priceDatas.length; i++)
 			{
 		   // console.log(coinName2 +"    "+i + "    priceDatas " + priceDatas[i].close)
@@ -139,8 +141,12 @@ const updatePriceForSell =async (coinName2,timeRequest, so_nen_check_giao_cat)=>
 				last50Prices.push(Number(priceDatas[priceDatas.length-i].high))
 
 			}
+		
+
 			var min = Math.min( ...last50Prices )
 			var max = Math.max( ...last50Prices )
+
+		
 //                     console.log("last50Prices     " + last50Prices
 //                      + "  min  " + min
 //                      )
@@ -261,7 +267,7 @@ const updatePriceForBuy =async (coinName2,timeRequest)=>{
                     var intersect_macd_index_array = []
                     var prices = []
                     var last50Prices = []
-
+					var last10Prices = []
                     for(var i =0; i < priceDatas.length; i++)
                     {
                 	   //  console.log(coinName2+ "   "+i + "    priceDatas " + priceDatas[i].close)
@@ -273,9 +279,20 @@ const updatePriceForBuy =async (coinName2,timeRequest)=>{
                 //	    console.log(i + "    priceDatas " + priceDatas[i].close)
                         last50Prices.push(Number(priceDatas[priceDatas.length-i].low))
                     }
+
+					for(var i = 10; i >0; i--)
+					{
+				//	    console.log(i + "    priceDatas " + priceDatas[i].close)
+						last10Prices.push(Number(priceDatas[priceDatas.length-i].high))
+		
+					}
+
                     var min = Math.min( ...last50Prices )
-				//	var min = Math.min( ...last50Prices )
 					var max = Math.max( ...last50Prices )
+
+
+					var min10 = Math.min( ...last10Prices )
+					var max10 = Math.max( ...last10Prices )
     //                     console.log("last50Prices     " + last50Prices
     //                      + "  min  " + min
     //                      )
@@ -325,7 +342,7 @@ const updatePriceForBuy =async (coinName2,timeRequest)=>{
 										bot.sendMessage(chatId,timeRequest +"   Canh bao: Can Than Lo  " + coinName2 + "   ema 10 " + ema10[ema10.length-1] + "  ema20  " + ema20[ema20.length-1]);
 										bot.sendMessage(chatId,timeRequest +"   Canh bao: Can Than Lo  " + coinName2 + "   ema 10 " + ema10[ema10.length-1] + "  ema20  " + ema20[ema20.length-1]);
 									}
-									if( priceDatas[priceDatas.length - 1].close  > max )
+									if( priceDatas[priceDatas.length - 1].close  > max10 )
 									{
 										bot.sendMessage(chatId,timeRequest +"   Canh bao: Can Than Lo  " + coinName2 + " Gia cao hon gia min");
 										bot.sendMessage(chatId,timeRequest +"   Canh bao: Can Than Lo  " + coinName2 + " Gia cao hon gia min");
@@ -333,18 +350,18 @@ const updatePriceForBuy =async (coinName2,timeRequest)=>{
 									
 							   }else if(String(currentSymbols[i].positionSide) == "LONG")
 							   {
-								//	console.log("Trung coin name" + coinName2)
-								if((ema10[ema10.length-1] < ema20[ema20.length-1]) &&(ema10[ema10.length-2] > ema20[ema20.length-2]) )
-								{
-									bot.sendMessage(chatId,timeRequest +"   Canh bao: Can Than Lo  " + coinName2 + "   ema 10 " + ema10[ema10.length-1] + "  ema20  " + ema20[ema20.length-1]);
-									bot.sendMessage(chatId,timeRequest +"    Canh bao: Can Than Lo  " + coinName2 + "   ema 10 " + ema10[ema10.length-1] + "  ema20  " + ema20[ema20.length-1]);
-								}
+									//	console.log("Trung coin name" + coinName2)
+									if((ema10[ema10.length-1] < ema20[ema20.length-1]) &&(ema10[ema10.length-2] > ema20[ema20.length-2]) )
+									{
+										bot.sendMessage(chatId,timeRequest +"   Canh bao: Can Than Lo  " + coinName2 + "   ema 10 " + ema10[ema10.length-1] + "  ema20  " + ema20[ema20.length-1]);
+										bot.sendMessage(chatId,timeRequest +"    Canh bao: Can Than Lo  " + coinName2 + "   ema 10 " + ema10[ema10.length-1] + "  ema20  " + ema20[ema20.length-1]);
+									}
 
-								if( priceDatas[priceDatas.length - 1].close  < min )
-								{
-									bot.sendMessage(chatId,timeRequest +"   Canh bao: Can Than Lo  " + coinName2 + " Gia thap hon gia min");
-									bot.sendMessage(chatId,timeRequest +"   Canh bao: Can Than Lo  " + coinName2 + " Gia thap hon gia min");
-								}
+									if( priceDatas[priceDatas.length - 1].close  < min10 )
+									{
+										bot.sendMessage(chatId,timeRequest +"   Canh bao: Can Than Lo  " + coinName2 + " Gia thap hon gia min");
+										bot.sendMessage(chatId,timeRequest +"   Canh bao: Can Than Lo  " + coinName2 + " Gia thap hon gia min");
+									}
 							   }
 						   }
 						}
