@@ -479,7 +479,13 @@ const updatePrice = async(timeRequest )=>{
 		currentSymbols = await client.futuresOpenOrders()
 		//  currentSymbols = []
 		//  currentSymbols = await client.futuresOpenOrders()
-		 console.log(currentSymbols);
+		// console.log(currentSymbols);
+		for(var i = 0; i < currentSymbols.length; i++)
+		{
+			console.log("Current Symbol "+currentSymbols[i].symbol);
+			bot.sendMessage(chatId,"Current Symbol "+currentSymbols[i].symbol );
+		}
+
 
        for(var coinIndex = 0; coinIndex < pricesArr.length; coinIndex++)
          {
