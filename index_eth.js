@@ -209,7 +209,7 @@ const updatePriceForSell =async (coinName2,timeRequest, so_nen_check_giao_cat)=>
 						total_coin_phanky+=1
 
 					//	bot.sendMessage(chatId, total_coin_phanky + "  " + timeRequest+  ", phan ki ban " + coinName2 +"  "+ intersect_macd_index_array[i]+"   " + lastPrice);
-						logStr += total_coin_phanky+ "  "+  timeRequest +", phan ki giam \n" + coinName2 +"  "+ intersect_macd_index_array[i]+"   " + lastPrice +"\n"
+						logStr +=  timeRequest +", phan ki giam \n" + coinName2 +"  "+ intersect_macd_index_array[i]+"   " + lastPrice +"\n"
 					
 						console.log( logStr)
 						//	bot.sendMessage(chatId,logStr );
@@ -424,7 +424,7 @@ const updatePriceForBuy =async (coinName2,timeRequest)=>{
                             //   console.log("Ema10 " + (ema10))
 
                                 coinDivergenceList.push(coinName2)
-                                logStr += total_coin_phanky+ "  "+  timeRequest +", phan ki tang \n " + coinName2 +"  "+ intersect_macd_index_array[i]+"   " + lastPrice +"\n"
+                                logStr +=  "  "+  timeRequest +", phan ki tang \n " + coinName2 +"  "+ intersect_macd_index_array[i]+"   " + lastPrice +"\n"
                                 console.log( logStr)
                              //   bot.sendMessage(chatId,logStr );
 								// if((timeRequest == "5m") || (timeRequest == "15m") ){
@@ -512,7 +512,7 @@ const updatePrice = async(timeRequest )=>{
                       {
                          if((test5m.hasPhanKy > 0)||(test15m.hasPhanKy > 0))
                          {
-                            console.log("test5m phan ky buy " +test5m.hasPhanKy+ "   logData2  : "+ test5m.logStr)
+                            console.log("Phan ky 2 lan " +test5m.hasPhanKy+ "   logData2  : "+ test5m.logStr)
                             var logData = test5m.logStr + test15m.logStr + test30m.logStr + test1h.logStr;
                             bot.sendMessage(chatId,logData );
                          }
@@ -520,7 +520,7 @@ const updatePrice = async(timeRequest )=>{
 					
 					  if((test15m.hasPhanKy > 1) && (test5m.hasPhanKy > 1))
 					  {
-						console.log("test5m phan ky buy " +test5m.hasPhanKy+ "   logData2  : "+ test5m.logStr)
+						console.log("Phan ky 2 lan " +test5m.hasPhanKy+ "   logData2  : "+ test5m.logStr)
 						var logData = "Phan ky 2 lan : \n "+  test5m.logStr + test15m.logStr + test30m.logStr + test1h.logStr;
 						bot.sendMessage(chatId,logData );
 					  }
