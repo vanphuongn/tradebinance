@@ -580,7 +580,7 @@ const updatePrice = async(timeRequest )=>{
                       {
                          if((test5m.hasPhanKy > 0)||(test15m.hasPhanKy > 0))
                          {
-                            console.log("Phan ky mua 2 lan " +test5m.hasPhanKy+ "   logData2  : "+ test5m.logStr)
+                            console.log("Phan ky mua  lan " +test5m.hasPhanKy+ "   logData2  : "+ test5m.logStr)
                             var logData = test5m.logStr + test15m.logStr + test30m.logStr + test1h.logStr;
                             bot.sendMessage(chatId,logData );
                          }
@@ -588,8 +588,8 @@ const updatePrice = async(timeRequest )=>{
 					
 					  if((test15m.hasPhanKy > 1) ||(test5m.hasPhanKy > 1))
 					  {
-						console.log("Phan ky ban 2 lan " +test5m.hasPhanKy+ "   logData2  : "+ test5m.logStr)
-						var logData = "Phan ky ban 2 lan : \n "+  test5m.logStr + test15m.logStr + test30m.logStr + test1h.logStr;
+						console.log("Phan ky mua 2 lan " +test5m.hasPhanKy+ "   logData2  : "+ test5m.logStr)
+						var logData = "Phan ky mua 2 lan : \n "+  test5m.logStr + test15m.logStr + test30m.logStr + test1h.logStr;
 						bot.sendMessage(chatId,logData );
 					  }
 					  // check for shell
@@ -604,14 +604,14 @@ const updatePrice = async(timeRequest )=>{
                          if((test5mShell.hasPhanKy > 0)||(test15mShell.hasPhanKy > 0))
                          {
 							console.log("test5m2 " +test5mShell.hasPhanKy+ "   logData2  : "+ test5mShell.logStr)
-                            var logData = test5mShell.logStr + test15mShell.logStr + test30mShell.logStr + test1hShell.logStr;
+                            var logData = "Phan ku ban" +test5mShell.logStr + test15mShell.logStr + test30mShell.logStr + test1hShell.logStr;
                               bot.sendMessage(chatId,logData );
                          }
                       }
 					  if((test5mShell.hasPhanKy > 1)||(test15mShell.hasPhanKy > 1))
 					  {
-						 console.log("phan ki 2 lan " +test5mShell.hasPhanKy+ "   logData2  : "+ test5mShell.logStr)
-						 var logData = "Phan ky 2 lan :  "+ test5mShell.logStr + test15mShell.logStr + test30mShell.logStr + test1hShell.logStr;
+						 console.log("phan ki ban 2 lan " +test5mShell.hasPhanKy+ "   logData2  : "+ test5mShell.logStr)
+						 var logData = "Phan ky ban 2 lan :  "+ test5mShell.logStr + test15mShell.logStr + test30mShell.logStr + test1hShell.logStr;
 						   bot.sendMessage(chatId,logData );
 					  }
                       //  console.log("value  " + value)
