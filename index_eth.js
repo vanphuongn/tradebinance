@@ -586,7 +586,9 @@ const updatePrice = async(timeRequest )=>{
                          }
                       }
 					
-					  if((test15m.hasPhanKy > 1) ||(test5m.hasPhanKy > 1))
+					  if((test15m.hasPhanKy > 1) 
+					//  ||(test5m.hasPhanKy > 1)
+					  )
 					  {
 						console.log("Phan ky mua 2 lan " +test5m.hasPhanKy+ "   logData2  : "+ test5m.logStr)
 						var logData = "Phan ky mua 2 lan : \n "+  test5m.logStr + test15m.logStr + test30m.logStr + test1h.logStr;
@@ -608,7 +610,9 @@ const updatePrice = async(timeRequest )=>{
                               bot.sendMessage(chatId,logData );
                          }
                       }
-					  if((test5mShell.hasPhanKy > 1)||(test15mShell.hasPhanKy > 1))
+					  if(
+						//(test5mShell.hasPhanKy > 1)||
+					  (test15mShell.hasPhanKy > 1))
 					  {
 						 console.log("phan ki ban 2 lan " +test5mShell.hasPhanKy+ "   logData2  : "+ test5mShell.logStr)
 						 var logData = "Phan ky ban 2 lan :  "+ test5mShell.logStr + test15mShell.logStr + test30mShell.logStr + test1hShell.logStr;
