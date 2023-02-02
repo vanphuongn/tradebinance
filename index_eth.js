@@ -230,10 +230,12 @@ const updatePriceForSell =async (coinName2,timeRequest, so_nen_check_giao_cat)=>
 							{
 						 		hasPhanKy +=1;
 						 	}
+							 
 						 }
 						 else{
 							hasPhanKy +=1;
 						 }
+						 logStr += hasPhanKy  +" "+ timeRequest +", phan ki giam \n" + coinName2 +"  "+ intersect_macd_index_array[i]+"   " + lastPrice +"\n"
 						//hasPhanKy = true;
 					}
 				}
@@ -445,6 +447,7 @@ const updatePriceForBuy =async (coinName2,timeRequest)=>{
 								else{
 									hasPhanKy +=1;
 								}
+								logStr += hasPhanKy  +" "+ timeRequest +", phan ki giam \n" + coinName2 +"  "+ intersect_macd_index_array[i]+"   " + lastPrice +"\n"
                             }
                         }
 
