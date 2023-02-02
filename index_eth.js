@@ -192,7 +192,7 @@ const updatePriceForSell =async (coinName2,timeRequest, so_nen_check_giao_cat)=>
 				}
 		   }
 		 //   console.log("  intersect_macd_index_array length  " + intersect_macd_index_array.length)
-		 var hasPhanKy = 0;
+		 var hasPhanKy = true;
 		 var logStr = "";
 
 		   for(var i = 0; i < intersect_macd_index_array.length -1; i++)
@@ -233,21 +233,15 @@ const updatePriceForSell =async (coinName2,timeRequest, so_nen_check_giao_cat)=>
 						//	bot.sendMessage(chatId,logStr );
 						if((timeRequest == "5m") || (timeRequest == "15m") )
 						 {
-							
 						 	if( intersect_macd_index_array[i] < 20)
 							{
-						 		hasPhanKy =1;
+						 		hasPhanKy =true;
 						 	}
-							 if(( intersect_macd_index_array[i] < 20) && intersect_macd_index_array[i+1] < 20)
-							 {
-								hasPhanKy =2;
-							}
+							
 						 }
 						 else{
-							hasPhanKy =1;
-							if(( intersect_macd_index_array[i] < 20) && intersect_macd_index_array[i+1] < 20){
-								hasPhanKy =2;
-							}
+							hasPhanKy =true;
+						
 						 }
 						 logStr += hasPhanKy  +" "+ timeRequest +", phan ki giam \n" + coinName2 +"  "+ intersect_macd_index_array[i]+"  i+1  : " + intersect_macd_index_array[i+1] + "  "+ lastPrice +"\n"
 						
@@ -546,7 +540,7 @@ const updatePriceForBuy =async (coinName2,timeRequest)=>{
                    }
                  //   console.log("  intersect_macd_index_array length  " + intersect_macd_index_array.length)
 
-                    var hasPhanKy = 0;
+                    var hasPhanKy = true;
                     var logStr = "";
 
                      //  console.log("intersect_macd_index_array "+ intersect_macd_index_array.length)
@@ -587,17 +581,13 @@ const updatePriceForBuy =async (coinName2,timeRequest)=>{
 
 									if( intersect_macd_index_array[i] < 20)
 								   {
-										hasPhanKy =1;
+										hasPhanKy =true;
 									}
-									if(( intersect_macd_index_array[i] < 20) && intersect_macd_index_array[i+1] < 20){
-										hasPhanKy =2;
-									}
+								
 								}
 								else{
-									hasPhanKy =1;
-									if(( intersect_macd_index_array[i] < 20) && intersect_macd_index_array[i+1] < 20){
-										hasPhanKy =2;
-									}
+									hasPhanKy = true;
+								
 								}
 								logStr += hasPhanKy  +" "+ timeRequest +", phan ki tang \n" + coinName2 +" i: "+ intersect_macd_index_array[i]   + "  i+1:  " + intersect_macd_index_array[i+1]+"   " + lastPrice +"\n"
                            
@@ -693,9 +683,9 @@ const updatePrice = async(timeRequest )=>{
                       var test30m =  await  updatePriceForBuy(coinName2, "30m")
                       var test1h =  await  updatePriceForBuy(coinName2, "1h")
 
-                      if((test30m.hasPhanKy > 0)||(test1h.hasPhanKy > 0)||((test15m.hasPhanKy > 0) && (test5m.hasPhanKy > 0)))
+                      if((test30m.hasPhanKy == true)||(test1h.hasPhanKy == true)||((test15m.hasPhanKy == true) && (test5m.hasPhanKy == true)))
                       {
-                         if((test5m.hasPhanKy > 0)||(test15m.hasPhanKy > 0))
+                         if((test5m.hasPhanKy == true)||(test15m.hasPhanKy == true))
                          {
                             console.log("Phan ky mua  lan " +test5m.hasPhanKy+ "   logData2  : "+ test5m.logStr)
                             var logData = test5m.logStr + test15m.logStr + test30m.logStr + test1h.logStr;
@@ -711,14 +701,7 @@ const updatePrice = async(timeRequest )=>{
                          }
                       }
 					
-					  if((test15m.hasPhanKy > 1) 
-					//  ||(test5m.hasPhanKy > 1)
-					  )
-					  {
-						console.log("Phan ky mua 2 lan " +test5m.hasPhanKy+ "   logData2  : "+ test5m.logStr)
-						var logData = "Phan ky mua 2 lan : \n "+  test5m.logStr + test15m.logStr + test30m.logStr + test1h.logStr;
-						bot.sendMessage(chatId,logData );
-					  }
+					
 					  // check for shell
 				//	  var test3mShell =  await updatePriceForSell(coinName2, "3m", 30)
 					  var test5mShell =  await updatePriceForSell(coinName2, "5m", 30)
@@ -726,9 +709,9 @@ const updatePrice = async(timeRequest )=>{
                       var test30mShell = await   updatePriceForSell(coinName2, "30m",30)
                       var test1hShell =  await  updatePriceForSell(coinName2, "1h",30)
 				//	  console.log(coinName2 +"    test5m " +test5mShell.hasPhanKy+ "   logData2  : "+ test5mShell.logStr)
-                      if((test30mShell.hasPhanKy > 0)||(test1hShell.hasPhanKy > 0) || ((test15mShell.hasPhanKy > 0) && (test5m.hasPhanKy > 0) ))
+                      if((test30mShell.hasPhanKy == true)||(test1hShell.hasPhanKy == true) || ((test15mShell.hasPhanKy == true) && (test5m.hasPhanKy == true) ))
                       {
-                         if((test5mShell.hasPhanKy > 0)||(test15mShell.hasPhanKy > 0))
+                         if((test5mShell.hasPhanKy == true)||(test15mShell.hasPhanKy == true))
                          {
 							console.log("test5m2 " +test5mShell.hasPhanKy+ "   logData2  : "+ test5mShell.logStr)
                             var logData = "Phan ku ban" +test5mShell.logStr + test15mShell.logStr + test30mShell.logStr + test1hShell.logStr;
@@ -745,12 +728,7 @@ const updatePrice = async(timeRequest )=>{
 
                       }
 					  
-					  if(test15mShell.hasPhanKy > 1)
-					  {
-						 console.log("phan ki ban 2 lan " +test5mShell.hasPhanKy+ "   logData2  : "+ test5mShell.logStr)
-						 var logData = "Phan ky ban 2 lan :  "+ test5mShell.logStr + test15mShell.logStr + test30mShell.logStr + test1hShell.logStr;
-						   bot.sendMessage(chatId,logData );
-					  }
+					 
 					  
                       //  console.log("value  " + value)
                     }catch(err){
