@@ -125,149 +125,6 @@ var coinDivergenceList = []
 so_nen_check_giao_cat = 20
 currentSymbols = []
 
-const updatePriceForSell =async (coinName2,timeRequest, so_nen_check_giao_cat)=>{
-	try{
-
-		//	let macdData  = await macd(12,26,9,"close", "binance", "BNB/USDT",timeRequest,true);
-			let priceDatas = await client.candles({ symbol: coinName2, limit:1000,interval:timeRequest })
-			var intersect_macd_index_array = []
-			var prices = []
-			var last50Prices = []
-			
-
-			for(var i =0; i < priceDatas.length; i++)
-			{
-		   // console.log(coinName2 +"    "+i + "    priceDatas " + priceDatas[i].close)
-				prices.push(Number(priceDatas[i].close))
-			}
-
-			for(var i = 30; i >0; i--)
-			{
-		//	    console.log(i + "    priceDatas " + priceDatas[i].close)
-				last50Prices.push(Number(priceDatas[priceDatas.length-i].high))
-
-			}
-		
-
-			var min = Math.min( ...last50Prices )
-			var max = Math.max( ...last50Prices )
-
-		
-//                     console.log("last50Prices     " + last50Prices
-//                      + "  min  " + min
-//                      )
-//                     for(var i =0; i < prices.length; i++)
-//                        {
-//                            console.log(i + "    priceDatas " + prices[i])
-//
-//                        }
-
-
-			   var macdInput = {
-				  values            : prices,
-				  fastPeriod        : 12,
-				  slowPeriod        : 26,
-				  signalPeriod      : 9 ,
-				  SimpleMAOscillator: false,
-				  SimpleMASignal    : false
-				}
-
-//                   var result =  MACD.calculate(macdInput);
-	   //   console.log("macdInput :"+JSON.stringify(macdInput))
-		   var macdData2 = MACD.calculate(macdInput)
-		   var ema10 = EMA.calculate({period : 10, values : prices})
-		   var ema20 = EMA.calculate({period : 20, values : prices})
-
-	   //   console.log("macd :"+JSON.stringify(macdData2))
-		 // console.log("macd length:"+macdData2.length)
-
-			for(var i = 0;  i < macdData2.length;i++)
-			{
-				if( (macdData2[(macdData2.length -1)-i].MACD < macdData2[(macdData2.length -1)-i].signal)
-				&& (macdData2[(macdData2.length -1)-(i+1)].MACD > macdData2[(macdData2.length -1)-(i+1)].signal)
-				)
-				{
-		 //           console.log(i  +"  macdData  " + macdData2[i].MACD)
-					intersect_macd_index_array.push(i)
-				}
-		   }
-		 //   console.log("  intersect_macd_index_array length  " + intersect_macd_index_array.length)
-		 var hasPhanKy = true;
-		 var logStr = "";
-
-		   for(var i = 0; i < intersect_macd_index_array.length -1; i++)
-		   {
-				// console.log("  intersect_macd_index_array i  " + intersect_macd_index_array[i])
-				if( (macdData2[[macdData2.length - 1] -intersect_macd_index_array[i]].MACD < macdData2[[macdData2.length - 1] - intersect_macd_index_array[i+1]].MACD)
-
-					&&  priceDatas[[priceDatas.length - 1] - intersect_macd_index_array[i]].close > priceDatas[[priceDatas.length - 1] - intersect_macd_index_array[i+1]].close
-				)
-				{
-					var time = timeConverter(priceDatas[[priceDatas.length - 1] - intersect_macd_index_array[i]].closeTime)
-					var oldTime = timeConverter(priceDatas[[priceDatas.length - 1] - intersect_macd_index_array[i+1]].closeTime)
-					var lastPrice = priceDatas[priceDatas.length - 1].close
-				//	console.log("so_nen_check_giao_cat " + so_nen_check_giao_cat)
-					if((max / lastPrice) < 1.06 && (intersect_macd_index_array[i]  < 50)
-					&& (ema10[ema10.length-1] < ema20[ema20.length-1])
-					&& (macdData2[(macdData2.length -1)].MACD < macdData2[(macdData2.length -1)].signal)
-					)
-					{
-						total_coin_phanky+=1
-
-					//	bot.sendMessage(chatId, total_coin_phanky + "  " + timeRequest+  ", phan ki ban " + coinName2 +"  "+ intersect_macd_index_array[i]+"   " + lastPrice);
-					//	logStr +=  timeRequest +", phan ki giam \n" + coinName2 +" i "+ intersect_macd_index_array[i] + "  i+1  : " + intersect_macd_index_array[i+1]+ lastPrice +"\n"
-						console.log( coinName2 +"  " +" phan ki giam i :" + intersect_macd_index_array[i]
-						+ "  i+1  : " + intersect_macd_index_array[i+1]
-						+ " timeRequest  " + timeRequest
-						+ " macdData  "+ macdData2[[macdData2.length - 1] - intersect_macd_index_array[i]].MACD
-						+ " macdData  old "+ macdData2[[macdData2.length - 1] - intersect_macd_index_array[i+1]].MACD
-						+ "   price  :" + priceDatas[[priceDatas.length - 1] - intersect_macd_index_array[i]].close
-						+ "  lastestPrice  " + lastPrice
-						+ "   time  "  + time
-						+ "  old price  :" + priceDatas[[priceDatas.length - 1] - intersect_macd_index_array[i+1]].close
-						+ "   oldtime  "  + oldTime
-						)
-
-			
-					//	console.log( logStr)
-						//	bot.sendMessage(chatId,logStr );
-						if((timeRequest == "5m") || (timeRequest == "15m") )
-						 {
-						 	if( intersect_macd_index_array[i] < 20)
-							{
-						 		hasPhanKy =true;
-						 	}
-							
-						 }
-						 else{
-							hasPhanKy =true;
-						
-						 }
-						 logStr += hasPhanKy  +" "+ timeRequest +", phan ki giam \n" + coinName2 +"  "+ intersect_macd_index_array[i]+"  i+1  : " + intersect_macd_index_array[i+1] + "  "+ lastPrice +"\n"
-						
-						 bot_check_log.sendMessage(chatId,"hasPhanKy : "+ hasPhanKy +"   "+ coinName2 +"  " +" phan ki giam i :" + intersect_macd_index_array[i]
-						 + "  i+1  : " + intersect_macd_index_array[i+1]
-						 + " timeRequest  " + timeRequest
-						 + " macdData  "+ macdData2[[macdData2.length - 1] - intersect_macd_index_array[i]].MACD
-						 + " macdData  old "+ macdData2[[macdData2.length - 1] - intersect_macd_index_array[i+1]].MACD
-						 + "   price  :" + priceDatas[[priceDatas.length - 1] - intersect_macd_index_array[i]].close
-						 + "  lastestPrice  " + lastPrice
-						 + "   time  "  + time
-						 + "  old price  :" + priceDatas[[priceDatas.length - 1] - intersect_macd_index_array[i+1]].close
-						 + "   oldtime  "  + oldTime)
-						 //hasPhanKy = true;
-					}
-				}
-		   	}
-		   		return {hasPhanKy,logStr}
-			}
-			 catch (err)
-			  {
-		   //	 console.log(err + "  " + coinName2  );
-		   //	 log_str += err + "  " + coinName2 + "\n";
-				
-			}
-}
 
 const checkEma5mForSell = async(coinName2)=>{
 	try{
@@ -372,7 +229,7 @@ const checkEma5mForBuy = async(coinName2)=>{
 		   var hasGiaoCatEma5mForBuy = false;
 		   if((ema10[ema10.length-1] > ema20[ema20.length-1]) && (ema10[ema10.length-2] < ema20[ema20.length-2]))
 		   {
-				hasGiaoCatEma5mForShell = true;
+				hasGiaoCatEma5mForBuy = true;
 	   //		await binance.futuresCancelAll(coinName2) 
 		   }
 	 
@@ -385,6 +242,152 @@ const checkEma5mForBuy = async(coinName2)=>{
 		
 	}
 }
+
+const updatePriceForSell =async (coinName2,timeRequest, so_nen_check_giao_cat)=>{
+	try{
+
+		//	let macdData  = await macd(12,26,9,"close", "binance", "BNB/USDT",timeRequest,true);
+			let priceDatas = await client.candles({ symbol: coinName2, limit:1000,interval:timeRequest })
+			var intersect_macd_index_array = []
+			var prices = []
+			var last50Prices = []
+			
+
+			for(var i =0; i < priceDatas.length; i++)
+			{
+		   // console.log(coinName2 +"    "+i + "    priceDatas " + priceDatas[i].close)
+				prices.push(Number(priceDatas[i].close))
+			}
+
+			for(var i = 30; i >0; i--)
+			{
+		//	    console.log(i + "    priceDatas " + priceDatas[i].close)
+				last50Prices.push(Number(priceDatas[priceDatas.length-i].high))
+
+			}
+		
+
+			var min = Math.min( ...last50Prices )
+			var max = Math.max( ...last50Prices )
+
+		
+//                     console.log("last50Prices     " + last50Prices
+//                      + "  min  " + min
+//                      )
+//                     for(var i =0; i < prices.length; i++)
+//                        {
+//                            console.log(i + "    priceDatas " + prices[i])
+//
+//                        }
+
+
+			   var macdInput = {
+				  values            : prices,
+				  fastPeriod        : 12,
+				  slowPeriod        : 26,
+				  signalPeriod      : 9 ,
+				  SimpleMAOscillator: false,
+				  SimpleMASignal    : false
+				}
+
+//                   var result =  MACD.calculate(macdInput);
+	   //   console.log("macdInput :"+JSON.stringify(macdInput))
+		   var macdData2 = MACD.calculate(macdInput)
+		   var ema10 = EMA.calculate({period : 10, values : prices})
+		   var ema20 = EMA.calculate({period : 20, values : prices})
+
+	   //   console.log("macd :"+JSON.stringify(macdData2))
+		 // console.log("macd length:"+macdData2.length)
+
+			for(var i = 0;  i < macdData2.length;i++)
+			{
+				if( (macdData2[(macdData2.length -1)-i].MACD < macdData2[(macdData2.length -1)-i].signal)
+				&& (macdData2[(macdData2.length -1)-(i+1)].MACD > macdData2[(macdData2.length -1)-(i+1)].signal)
+				)
+				{
+		 //           console.log(i  +"  macdData  " + macdData2[i].MACD)
+					intersect_macd_index_array.push(i)
+				}
+		   }
+		 //   console.log("  intersect_macd_index_array length  " + intersect_macd_index_array.length)
+		 var hasPhanKy = false;
+		 var logStr = "";
+
+		   for(var i = 0; i < intersect_macd_index_array.length -1; i++)
+		   {
+				// console.log("  intersect_macd_index_array i  " + intersect_macd_index_array[i])
+				if( (macdData2[[macdData2.length - 1] -intersect_macd_index_array[i]].MACD < macdData2[[macdData2.length - 1] - intersect_macd_index_array[i+1]].MACD)
+
+					&&  priceDatas[[priceDatas.length - 1] - intersect_macd_index_array[i]].close > priceDatas[[priceDatas.length - 1] - intersect_macd_index_array[i+1]].close
+				)
+				{
+					var time = timeConverter(priceDatas[[priceDatas.length - 1] - intersect_macd_index_array[i]].closeTime)
+					var oldTime = timeConverter(priceDatas[[priceDatas.length - 1] - intersect_macd_index_array[i+1]].closeTime)
+					var lastPrice = priceDatas[priceDatas.length - 1].close
+				//	console.log("so_nen_check_giao_cat " + so_nen_check_giao_cat)
+					if((max / lastPrice) < 1.06 && (intersect_macd_index_array[i]  < 50)
+					&& (ema10[ema10.length-1] < ema20[ema20.length-1])
+					&& (macdData2[(macdData2.length -1)].MACD < macdData2[(macdData2.length -1)].signal)
+					)
+					{
+						total_coin_phanky+=1
+
+					//	bot.sendMessage(chatId, total_coin_phanky + "  " + timeRequest+  ", phan ki ban " + coinName2 +"  "+ intersect_macd_index_array[i]+"   " + lastPrice);
+					//	logStr +=  timeRequest +", phan ki giam \n" + coinName2 +" i "+ intersect_macd_index_array[i] + "  i+1  : " + intersect_macd_index_array[i+1]+ lastPrice +"\n"
+						// console.log( coinName2 +"  " +" phan ki giam i :" + intersect_macd_index_array[i]
+						// + "  i+1  : " + intersect_macd_index_array[i+1]
+						// + " timeRequest  " + timeRequest
+						// + " macdData  "+ macdData2[[macdData2.length - 1] - intersect_macd_index_array[i]].MACD
+						// + " macdData  old "+ macdData2[[macdData2.length - 1] - intersect_macd_index_array[i+1]].MACD
+						// + "   price  :" + priceDatas[[priceDatas.length - 1] - intersect_macd_index_array[i]].close
+						// + "  lastestPrice  " + lastPrice
+						// + "   time  "  + time
+						// + "  old price  :" + priceDatas[[priceDatas.length - 1] - intersect_macd_index_array[i+1]].close
+						// + "   oldtime  "  + oldTime
+						// )
+
+			
+					//	console.log( logStr)
+						//	bot.sendMessage(chatId,logStr );
+						if((timeRequest == "5m") || (timeRequest == "15m") )
+						 {
+						 	if( intersect_macd_index_array[i] < 20)
+							{
+						 		hasPhanKy =true;
+						 	}
+							
+						 }
+						 else{
+							hasPhanKy =true;
+						
+						 }
+						 logStr += hasPhanKy  +" "+ timeRequest +", phan ki giam " + coinName2 +"  "+ intersect_macd_index_array[i]+"  i+1  : " + intersect_macd_index_array[i+1] + "  "+ lastPrice +"\n"
+						if(hasPhanKy){
+							bot_check_log.sendMessage(chatId,"hasPhanKy : "+ hasPhanKy +"   "+ coinName2 +"  " +" phan ki giam i :" + intersect_macd_index_array[i]
+							+ "  i+1  : " + intersect_macd_index_array[i+1]
+							+ " timeRequest  " + timeRequest
+							+ " macdData  "+ macdData2[[macdData2.length - 1] - intersect_macd_index_array[i]].MACD
+							+ " macdData  old "+ macdData2[[macdData2.length - 1] - intersect_macd_index_array[i+1]].MACD
+							+ "   price  :" + priceDatas[[priceDatas.length - 1] - intersect_macd_index_array[i]].close
+							+ "  lastestPrice  " + lastPrice
+							+ "   time  "  + time
+							+ "  old price  :" + priceDatas[[priceDatas.length - 1] - intersect_macd_index_array[i+1]].close
+							+ "   oldtime  "  + oldTime)
+						}
+						 //hasPhanKy = true;
+					}
+				}
+		   	}
+		   		return {hasPhanKy,logStr}
+			}
+			 catch (err)
+			  {
+		   //	 console.log(err + "  " + coinName2  );
+		   //	 log_str += err + "  " + coinName2 + "\n";
+				
+			}
+}
+
 const updatePriceForBuy =async (coinName2,timeRequest)=>{
         try{
 					
@@ -540,7 +543,7 @@ const updatePriceForBuy =async (coinName2,timeRequest)=>{
                    }
                  //   console.log("  intersect_macd_index_array length  " + intersect_macd_index_array.length)
 
-                    var hasPhanKy = true;
+                    var hasPhanKy = false;
                     var logStr = "";
 
                      //  console.log("intersect_macd_index_array "+ intersect_macd_index_array.length)
@@ -589,33 +592,36 @@ const updatePriceForBuy =async (coinName2,timeRequest)=>{
 									hasPhanKy = true;
 								
 								}
-								logStr += hasPhanKy  +" "+ timeRequest +", phan ki tang \n" + coinName2 +" i: "+ intersect_macd_index_array[i]   + "  i+1:  " + intersect_macd_index_array[i+1]+"   " + lastPrice +"\n"
-                           
-								bot_check_log.sendMessage( chatId,"hasPhanKy : "+ hasPhanKy +"   "+ coinName2 + " phan ki tang i :" + intersect_macd_index_array[i]
-								+ "  i+1  : " + intersect_macd_index_array[i+1]
-								+ "  timeRequest  " + timeRequest
-								+ " macdData  "+ macdData2[[macdData2.length - 1] - intersect_macd_index_array[i]].MACD
-								+ " macdData  old "+ macdData2[[macdData2.length - 1] - intersect_macd_index_array[i+1]].MACD
-								+ "  lastestPrice  " + lastPrice
-								+ "   price  :" + priceDatas[[priceDatas.length - 1] - intersect_macd_index_array[i]].close
- 
-								+ "   time  "  + time
-								+ "  old price  :" + priceDatas[[priceDatas.length - 1] - intersect_macd_index_array[i+1]].close
-								+ "   oldtime  "  + oldTime
-								)
+								
+								logStr +=  timeRequest +" " + coinName2 +" i: "+ intersect_macd_index_array[i]   + "  i+1:  " + intersect_macd_index_array[i+1]+"   " + lastPrice +"\n"
+								if(hasPhanKy)
+								{
+									bot_check_log.sendMessage( chatId,"hasPhanKy : "+ hasPhanKy +"   "+ coinName2 + " phan ki tang i :" + intersect_macd_index_array[i]
+									+ "  i+1  : " + intersect_macd_index_array[i+1]
+									+ "  timeRequest  " + timeRequest
+									+ " macdData  "+ macdData2[[macdData2.length - 1] - intersect_macd_index_array[i]].MACD
+									+ " macdData  old "+ macdData2[[macdData2.length - 1] - intersect_macd_index_array[i+1]].MACD
+									+ "  lastestPrice  " + lastPrice
+									+ "   price  :" + priceDatas[[priceDatas.length - 1] - intersect_macd_index_array[i]].close
+	
+									+ "   time  "  + time
+									+ "  old price  :" + priceDatas[[priceDatas.length - 1] - intersect_macd_index_array[i+1]].close
+									+ "   oldtime  "  + oldTime
+									)
 
-								console.log("hasPhanKy : "+ hasPhanKy +"   "+ coinName2 + " phan ki tang i :" + intersect_macd_index_array[i]
-								+ "  i+1  : " + intersect_macd_index_array[i+1]
-								+ "  timeRequest  " + timeRequest
-								+ " macdData  "+ macdData2[[macdData2.length - 1] - intersect_macd_index_array[i]].MACD
-								+ " macdData  old "+ macdData2[[macdData2.length - 1] - intersect_macd_index_array[i+1]].MACD
-								+ "  lastestPrice  " + lastPrice
-								+ "   price  :" + priceDatas[[priceDatas.length - 1] - intersect_macd_index_array[i]].close
- 
-								+ "   time  "  + time
-								+ "  old price  :" + priceDatas[[priceDatas.length - 1] - intersect_macd_index_array[i+1]].close
-								+ "   oldtime  "  + oldTime
-								)
+									console.log("hasPhanKy : "+ hasPhanKy +"   "+ coinName2 + " phan ki tang i :" + intersect_macd_index_array[i]
+									+ "  i+1  : " + intersect_macd_index_array[i+1]
+									+ "  timeRequest  " + timeRequest
+									+ " macdData  "+ macdData2[[macdData2.length - 1] - intersect_macd_index_array[i]].MACD
+									+ " macdData  old "+ macdData2[[macdData2.length - 1] - intersect_macd_index_array[i+1]].MACD
+									+ "  lastestPrice  " + lastPrice
+									+ "   price  :" + priceDatas[[priceDatas.length - 1] - intersect_macd_index_array[i]].close
+	
+									+ "   time  "  + time
+									+ "  old price  :" + priceDatas[[priceDatas.length - 1] - intersect_macd_index_array[i+1]].close
+									+ "   oldtime  "  + oldTime
+									)
+								}
 							}
                         }
 
@@ -687,17 +693,19 @@ const updatePrice = async(timeRequest )=>{
                       {
                          if((test5m.hasPhanKy == true)||(test15m.hasPhanKy == true))
                          {
-                            console.log("Phan ky mua  lan " +test5m.hasPhanKy+ "   logData2  : "+ test5m.logStr)
-                            var logData = test5m.logStr + test15m.logStr + test30m.logStr + test1h.logStr;
+                          //  console.log("Phan ky mua   " +test5m.hasPhanKy+ "   logData2  : "+ test5m.logStr)
+                            var logData = "phan ky tang "+ test5m.logStr + test15m.logStr + test30m.logStr + test1h.logStr;
                             bot.sendMessage(chatId,logData );
+							console.log(logData);
                          }
 
 						 var hasGiaoCatEma5mForBuy = checkEma5mForBuy(coinName2);
 						 if(hasGiaoCatEma5mForBuy == true)
                          {
-							console.log("phan ki 15 hoac 30 va giao cat 5m tu duoi len " +test5m.hasPhanKy+ "   logData2  : "+ test5m.logStr)
+						//	console.log("phan ki 15 hoac 30 va giao cat 5m tu duoi len " +test5m.hasPhanKy+ "   logData2  : "+ test5m.logStr)
                             var logData = "Phan ky tang 15 hoac 30 va giao cat 5m tu duoi len  "  + test5m.logStr + test15m.logStr + test30m.logStr + test1h.logStr;
                               bot.sendMessage(chatId,logData );
+							  console.log(logData);
                          }
                       }
 					
@@ -713,16 +721,18 @@ const updatePrice = async(timeRequest )=>{
                       {
                          if((test5mShell.hasPhanKy == true)||(test15mShell.hasPhanKy == true))
                          {
-							console.log("test5m2 " +test5mShell.hasPhanKy+ "   logData2  : "+ test5mShell.logStr)
-                            var logData = "Phan ku ban" +test5mShell.logStr + test15mShell.logStr + test30mShell.logStr + test1hShell.logStr;
+							//console.log("test5m2 " +test5mShell.hasPhanKy+ "   logData2  : "+ test5mShell.logStr)
+                            var logData = "Phan ky ban   " +test5mShell.logStr + test15mShell.logStr + test30mShell.logStr + test1hShell.logStr;
                               bot.sendMessage(chatId,logData );
+							  console.log(logData);
                          }
 						 var hasGiaoCatEma5mForShell = checkEma5mForSell(coinName2);
 						 if(hasGiaoCatEma5mForShell == true)
                          {
-							console.log("phan ki 15 hoac 30 va giao cat 5m tu tren xuong " +test5mShell.hasPhanKy+ "   logData2  : "+ test5mShell.logStr)
-                            var logData = "Phan ku ban 15 hoac 30 va giao cat 5m tu tren xuong  "  +test5mShell.logStr + test15mShell.logStr + test30mShell.logStr + test1hShell.logStr;
-                              bot.sendMessage(chatId,logData );
+							//console.log("phan ki 15 hoac 30 va giao cat 5m tu tren xuong " +test5mShell.hasPhanKy+ "   logData2  : "+ test5mShell.logStr)
+                            var logData = "Phan ky ban 15 hoac 30 va giao cat 5m tu tren xuong  "  +test5mShell.logStr + test15mShell.logStr + test30mShell.logStr + test1hShell.logStr;
+							console.log(logData);
+							bot.sendMessage(chatId,logData );
                          }
 						 // check when ema10 cat ema20 tu tren xuong cua nen 5m
 
