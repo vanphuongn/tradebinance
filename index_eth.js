@@ -13,9 +13,11 @@ app.set('port', (process.env.PORT || 5000));
 //For avoidong Heroku $PORT error
 //const token = '1677444880:AAHC0UgHkuf0Y7NqsubVJSN4Q0WpPfFOYb8';
 const token = '5967294536:AAHR4YyRbr5OdMMfVn7xvc3xFLAITBQGw4I';
-
 const chatId = "662991734";
 const bot = new TelegramBot(token,{polling:true});
+
+const token_warning = "6037137720:AAFBEfCG9xWY4K_3tx7VSZzMXGgmt9-Zdog"
+const bot_warning = new TelegramBot(token_warning,{polling:true});
 
 
 const {StochasticRSI} = require('technicalindicators');
@@ -343,14 +345,14 @@ const updatePriceForBuy =async (coinName2,timeRequest)=>{
 									if((ema10[ema10.length-1] > ema20[ema20.length-1]) && (ema10[ema10.length-2] < ema20[ema20.length-2])
 									)
 									{
-										bot.sendMessage(chatId,timeRequest +"   Canh bao: Can Than Lo  " + coinName2 + "   ema 10 " + ema10[ema10.length-1] + " lon hon ema20  " + ema20[ema20.length-1]);
-										bot.sendMessage(chatId,timeRequest +"   Canh bao: Can Than Lo  " + coinName2 + "   ema 10 " + ema10[ema10.length-1] + " lon hon  ema20  " + ema20[ema20.length-1]);
+										bot_warning.sendMessage(chatId,timeRequest +"   Canh bao: Can Than Lo  " + coinName2 + "   ema 10 " + ema10[ema10.length-1] + " lon hon ema20  " + ema20[ema20.length-1]);
+										bot_warning.sendMessage(chatId,timeRequest +"   Canh bao: Can Than Lo  " + coinName2 + "   ema 10 " + ema10[ema10.length-1] + " lon hon  ema20  " + ema20[ema20.length-1]);
 										await binance.futuresCancelAll(coinName2) 
 									}
 									if( priceDatas[priceDatas.length - 1].close  > max10 )
 									{
-										bot.sendMessage(chatId,timeRequest +"   Canh bao: Can Than Lo  " + coinName2 + " Gia cao hon gia min");
-										bot.sendMessage(chatId,timeRequest +"   Canh bao: Can Than Lo  " + coinName2 + " Gia cao hon gia min");
+										bot_warning.sendMessage(chatId,timeRequest +"   Canh bao: Can Than Lo  " + coinName2 + " Gia cao hon gia min");
+										bot_warning.sendMessage(chatId,timeRequest +"   Canh bao: Can Than Lo  " + coinName2 + " Gia cao hon gia min");
 									}
 									
 							   }else if(String(currentSymbols[i].positionSide) == "LONG")
@@ -359,15 +361,15 @@ const updatePriceForBuy =async (coinName2,timeRequest)=>{
 									if((ema10[ema10.length-1] < ema20[ema20.length-1]) &&(ema10[ema10.length-2] > ema20[ema20.length-2]) )
 									{
 										await binance.futuresCancelAll(coinName2) 
-										bot.sendMessage(chatId,timeRequest +"   Canh bao: Can Than Lo  " + coinName2 + "   ema 10 " + ema10[ema10.length-1] + " nho hon  ema20  " + ema20[ema20.length-1]);
-										bot.sendMessage(chatId,timeRequest +"    Canh bao: Can Than Lo  " + coinName2 + "   ema 10 " + ema10[ema10.length-1] + " nho hon ema20  " + ema20[ema20.length-1]);
+										bot_warning.sendMessage(chatId,timeRequest +"   Canh bao: Can Than Lo  " + coinName2 + "   ema 10 " + ema10[ema10.length-1] + " nho hon  ema20  " + ema20[ema20.length-1]);
+										bot_warning.sendMessage(chatId,timeRequest +"    Canh bao: Can Than Lo  " + coinName2 + "   ema 10 " + ema10[ema10.length-1] + " nho hon ema20  " + ema20[ema20.length-1]);
 									
 									}
 
 									if( priceDatas[priceDatas.length - 1].close  < min10 )
 									{
-										bot.sendMessage(chatId,timeRequest +"   Canh bao: Can Than Lo  " + coinName2 + " Gia thap hon gia min");
-										bot.sendMessage(chatId,timeRequest +"   Canh bao: Can Than Lo  " + coinName2 + " Gia thap hon gia min");
+										bot_warning.sendMessage(chatId,timeRequest +"   Canh bao: Can Than Lo  " + coinName2 + " Gia thap hon gia min");
+										bot_warning.sendMessage(chatId,timeRequest +"   Canh bao: Can Than Lo  " + coinName2 + " Gia thap hon gia min");
 									}
 							   }
 						   }
@@ -724,7 +726,7 @@ const waitSellOrderCompletion = async()=>{
 	let buySuccess = null;
 
 	//	await updateEMA();
-	bot.sendMessage(chatId," =============Start 1 vong requets ======" );
+	bot_warning.sendMessage(chatId," =============Start 1 vong requets ======" );
 	while(true)
 	{
 			log_str = "";
