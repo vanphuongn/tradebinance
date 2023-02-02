@@ -236,12 +236,18 @@ const updatePriceForSell =async (coinName2,timeRequest, so_nen_check_giao_cat)=>
 							
 						 	if( intersect_macd_index_array[i] < 20)
 							{
-						 		hasPhanKy +=1;
+						 		hasPhanKy =1;
 						 	}
-							 
+							 if(( intersect_macd_index_array[i] < 20) && intersect_macd_index_array[i+1] < 20)
+							 {
+								hasPhanKy =2;
+							}
 						 }
 						 else{
-							hasPhanKy +=1;
+							hasPhanKy =1;
+							if(( intersect_macd_index_array[i] < 20) && intersect_macd_index_array[i+1] < 20){
+								hasPhanKy =2;
+							}
 						 }
 						 logStr += hasPhanKy  +" "+ timeRequest +", phan ki giam \n" + coinName2 +"  "+ intersect_macd_index_array[i]+"  i+1  : " + intersect_macd_index_array[i+1] + "  "+ lastPrice +"\n"
 						
@@ -446,18 +452,7 @@ const updatePriceForBuy =async (coinName2,timeRequest)=>{
                             )
                             {
                                 total_coin_phanky+=1
-                               console.log( coinName2 + " phan ki tang i :" + intersect_macd_index_array[i]
-                               + "  i+1  : " + intersect_macd_index_array[i+1]
-                               + "  timeRequest  " + timeRequest
-                               + " macdData  "+ macdData2[[macdData2.length - 1] - intersect_macd_index_array[i]].MACD
-                               + " macdData  old "+ macdData2[[macdData2.length - 1] - intersect_macd_index_array[i+1]].MACD
-                               + "  lastestPrice  " + lastPrice
-                               + "   price  :" + priceDatas[[priceDatas.length - 1] - intersect_macd_index_array[i]].close
-
-                               + "   time  "  + time
-                               + "  old price  :" + priceDatas[[priceDatas.length - 1] - intersect_macd_index_array[i+1]].close
-                               + "   oldtime  "  + oldTime
-                               )
+                          
 							
                             //   console.log("Ema10 " + (ema10))
 
@@ -477,15 +472,34 @@ const updatePriceForBuy =async (coinName2,timeRequest)=>{
 
 									if( intersect_macd_index_array[i] < 20)
 								   {
-										hasPhanKy +=1;
+										hasPhanKy =1;
+									}
+									if(( intersect_macd_index_array[i] < 20) && intersect_macd_index_array[i+1] < 20){
+										hasPhanKy =2;
 									}
 								}
 								else{
-									hasPhanKy +=1;
+									hasPhanKy =1;
+									if(( intersect_macd_index_array[i] < 20) && intersect_macd_index_array[i+1] < 20){
+										hasPhanKy =2;
+									}
 								}
 								logStr += hasPhanKy  +" "+ timeRequest +", phan ki tang \n" + coinName2 +" i: "+ intersect_macd_index_array[i]   + "  i+1:  " + intersect_macd_index_array[i+1]+"   " + lastPrice +"\n"
                            
 								bot_check_log.sendMessage( chatId,"hasPhanKy : "+ hasPhanKy +"   "+ coinName2 + " phan ki tang i :" + intersect_macd_index_array[i]
+								+ "  i+1  : " + intersect_macd_index_array[i+1]
+								+ "  timeRequest  " + timeRequest
+								+ " macdData  "+ macdData2[[macdData2.length - 1] - intersect_macd_index_array[i]].MACD
+								+ " macdData  old "+ macdData2[[macdData2.length - 1] - intersect_macd_index_array[i+1]].MACD
+								+ "  lastestPrice  " + lastPrice
+								+ "   price  :" + priceDatas[[priceDatas.length - 1] - intersect_macd_index_array[i]].close
+ 
+								+ "   time  "  + time
+								+ "  old price  :" + priceDatas[[priceDatas.length - 1] - intersect_macd_index_array[i+1]].close
+								+ "   oldtime  "  + oldTime
+								)
+
+								console.log("hasPhanKy : "+ hasPhanKy +"   "+ coinName2 + " phan ki tang i :" + intersect_macd_index_array[i]
 								+ "  i+1  : " + intersect_macd_index_array[i+1]
 								+ "  timeRequest  " + timeRequest
 								+ " macdData  "+ macdData2[[macdData2.length - 1] - intersect_macd_index_array[i]].MACD
@@ -572,7 +586,7 @@ const updatePrice = async(timeRequest )=>{
                          }
                       }
 					
-					  if((test15m.hasPhanKy > 1) && (test5m.hasPhanKy > 1))
+					  if((test15m.hasPhanKy > 1) ||(test5m.hasPhanKy > 1))
 					  {
 						console.log("Phan ky 2 lan " +test5m.hasPhanKy+ "   logData2  : "+ test5m.logStr)
 						var logData = "Phan ky 2 lan : \n "+  test5m.logStr + test15m.logStr + test30m.logStr + test1h.logStr;
