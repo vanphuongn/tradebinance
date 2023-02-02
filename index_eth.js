@@ -363,16 +363,17 @@ const updatePriceForSell =async (coinName2,timeRequest, so_nen_check_giao_cat)=>
 						 }
 						 logStr += hasPhanKy  +" "+ timeRequest +", phan ki giam " + coinName2 +"  "+ intersect_macd_index_array[i]+"  i+1  : " + intersect_macd_index_array[i+1] + "  "+ lastPrice +"\n"
 						if(hasPhanKy){
-							bot_check_log.sendMessage(chatId,"hasPhanKy : "+ hasPhanKy +"   "+ coinName2 +"  " +" phan ki giam i :" + intersect_macd_index_array[i]
+							bot_check_log.sendMessage(chatId, coinName2 +"  " +" phan ki giam i :" + intersect_macd_index_array[i]
 							+ "  i+1  : " + intersect_macd_index_array[i+1]
 							+ " timeRequest  " + timeRequest
-							+ " macdData  "+ macdData2[[macdData2.length - 1] - intersect_macd_index_array[i]].MACD
-							+ " macdData  old "+ macdData2[[macdData2.length - 1] - intersect_macd_index_array[i+1]].MACD
+							// + " macdData  "+ macdData2[[macdData2.length - 1] - intersect_macd_index_array[i]].MACD
+							// + " macdData  old "+ macdData2[[macdData2.length - 1] - intersect_macd_index_array[i+1]].MACD
 							+ "   price  :" + priceDatas[[priceDatas.length - 1] - intersect_macd_index_array[i]].close
-							+ "  lastestPrice  " + lastPrice
-							+ "   time  "  + time
+							// + "  lastestPrice  " + lastPrice
+							// + "   time  "  + time
 							+ "  old price  :" + priceDatas[[priceDatas.length - 1] - intersect_macd_index_array[i+1]].close
-							+ "   oldtime  "  + oldTime)
+						//	+ "   oldtime  "  + oldTime
+							)
 						}
 						 //hasPhanKy = true;
 					}
@@ -596,17 +597,17 @@ const updatePriceForBuy =async (coinName2,timeRequest)=>{
 								logStr +=  timeRequest +" " + coinName2 +" i: "+ intersect_macd_index_array[i]   + "  i+1:  " + intersect_macd_index_array[i+1]+"   " + lastPrice +"\n"
 								if(hasPhanKy)
 								{
-									bot_check_log.sendMessage( chatId,"hasPhanKy : "+ hasPhanKy +"   "+ coinName2 + " phan ki tang i :" + intersect_macd_index_array[i]
+									bot_check_log.sendMessage( chatId, coinName2 + " phan ki tang i :" + intersect_macd_index_array[i]
 									+ "  i+1  : " + intersect_macd_index_array[i+1]
 									+ "  timeRequest  " + timeRequest
-									+ " macdData  "+ macdData2[[macdData2.length - 1] - intersect_macd_index_array[i]].MACD
-									+ " macdData  old "+ macdData2[[macdData2.length - 1] - intersect_macd_index_array[i+1]].MACD
+									// + " macdData  "+ macdData2[[macdData2.length - 1] - intersect_macd_index_array[i]].MACD
+									// + " macdData  old "+ macdData2[[macdData2.length - 1] - intersect_macd_index_array[i+1]].MACD
 									+ "  lastestPrice  " + lastPrice
 									+ "   price  :" + priceDatas[[priceDatas.length - 1] - intersect_macd_index_array[i]].close
 	
-									+ "   time  "  + time
+								//	+ "   time  "  + time
 									+ "  old price  :" + priceDatas[[priceDatas.length - 1] - intersect_macd_index_array[i+1]].close
-									+ "   oldtime  "  + oldTime
+								//	+ "   oldtime  "  + oldTime
 									)
 
 									console.log("hasPhanKy : "+ hasPhanKy +"   "+ coinName2 + " phan ki tang i :" + intersect_macd_index_array[i]
