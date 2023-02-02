@@ -706,7 +706,7 @@ const updatePrice = async(timeRequest )=>{
 						 if(hasGiaoCatEma5mForBuy == true)
                          {
 							console.log("phan ki 15 hoac 30 va giao cat 5m tu duoi len " +test5m.hasPhanKy+ "   logData2  : "+ test5m.logStr)
-                            var logData = "Phan ku ban 15 hoac 30 va giao cat 5m tu duoi len  "  + test5m.logStr + test15m.logStr + test30m.logStr + test1h.logStr;
+                            var logData = "Phan ky tang 15 hoac 30 va giao cat 5m tu duoi len  "  + test5m.logStr + test15m.logStr + test30m.logStr + test1h.logStr;
                               bot.sendMessage(chatId,logData );
                          }
                       }
