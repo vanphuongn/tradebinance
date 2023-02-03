@@ -565,7 +565,7 @@ const updatePriceForBuy =async (coinName2,timeRequest)=>{
                             //   console.log("Ema10 " + (ema10))
 
                                 coinDivergenceList.push(coinName2)
-                                logStr += total_coin_phanky+ "  "+  timeRequest +", phan ki tang " + coinName2 +" [ "+ intersect_macd_index_array[i]+" | "+ intersect_macd_index_array[i+1]+"  ] " + lastPrice +"\n"
+                                logStr += intersect_macd_index_array[i]+ "  "+  timeRequest +", phan ki tang " + coinName2 +" [ "+ intersect_macd_index_array[i]+" | "+ intersect_macd_index_array[i+1]+"  ] " + lastPrice +"\n"
                                 console.log( logStr)
                              //   bot.sendMessage(chatId,logStr );
 								// if((timeRequest == "5m") || (timeRequest == "15m") ){
