@@ -332,7 +332,7 @@ const updatePriceForSell =async (coinName2,timeRequest, so_nen_check_giao_cat)=>
 						total_coin_phanky+=1
 
 					//	bot.sendMessage(chatId, total_coin_phanky + "  " + timeRequest+  ", phan ki ban " + coinName2 +"  "+ intersect_macd_index_array[i]+"   " + lastPrice);
-						logStr += total_coin_phanky+ "  "+  timeRequest +", phan ki giam " + coinName2 +"  ["+ intersect_macd_index_array[i]+" |"+ intersect_macd_index_array[i+1]+" ]  " + lastPrice +"\n"
+						logStr += intersect_macd_index_array[i]+ "  "+  timeRequest +", phan ki giam " + coinName2 +"  ["+ intersect_macd_index_array[i]+" |"+ intersect_macd_index_array[i+1]+" ]  " + lastPrice +"\n"
 					//	bot.sendMessage(chatId,logStr );
 						if((timeRequest == "5m") || (timeRequest == "15m") )
 						 {
