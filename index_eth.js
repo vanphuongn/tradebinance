@@ -126,11 +126,11 @@ var coinDivergenceList = []
 so_nen_check_giao_cat = 20
 currentSymbols = []
 
-const checkEma5mForSell = async(coinName2)=>{
+const checkEma5mCatXuongForSell = async(coinName2)=>{
 	try{
 
 		//	let macdData  = await macd(12,26,9,"close", "binance", "BNB/USDT",timeRequest,true);
-			let priceDatas = await client.candles({ symbol: coinName2, limit:1000,interval:"3m" })
+			let priceDatas = await client.candles({ symbol: coinName2, limit:1000,interval:"5m" })
 			var intersect_macd_index_array = []
 			var prices = []
 			var last50Prices = []
@@ -177,12 +177,12 @@ const checkEma5mForSell = async(coinName2)=>{
 		   &&( (ema10[ema10.length-2] > ema20[ema20.length-2]) || (ema10[ema10.length-3] > ema20[ema20.length-3]))
 		   )
 		   {
-		      console.log("Giao cat xuong")
+		      console.log(coinName2+ "Giao cat xuong")
 				hasGiaoCatEma5mForShell = true;
 	   //		await binance.futuresCancelAll(coinName2) 
 		   }
 	 
-			return hasGiaoCatEma5mForShell;
+			return {hasGiaoCatEma5mForShell};
 	}
 		catch (err)
 		{
@@ -191,11 +191,143 @@ const checkEma5mForSell = async(coinName2)=>{
 		
 	}
 }
-const checkEma5mForBuy = async(coinName2)=>{
+const checkEma5mNhoHonForSell = async(coinName2)=>{
 	try{
 
 		//	let macdData  = await macd(12,26,9,"close", "binance", "BNB/USDT",timeRequest,true);
-			let priceDatas = await client.candles({ symbol: coinName2, limit:1000,interval:"3m" })
+			let priceDatas = await client.candles({ symbol: coinName2, limit:1000,interval:"5m" })
+			var intersect_macd_index_array = []
+			var prices = []
+			var last50Prices = []
+
+
+			for(var i =0; i < priceDatas.length; i++)
+			{
+		   // console.log(coinName2 +"    "+i + "    priceDatas " + priceDatas[i].close)
+				prices.push(Number(priceDatas[i].close))
+			}
+
+			for(var i = 30; i >0; i--)
+			{
+		//	    console.log(i + "    priceDatas " + priceDatas[i].close)
+				last50Prices.push(Number(priceDatas[priceDatas.length-i].high))
+
+			}
+
+
+			var min = Math.min( ...last50Prices )
+			var max = Math.max( ...last50Prices )
+
+			var macdInput = {
+				values            : prices,
+				fastPeriod        : 12,
+				slowPeriod        : 26,
+				signalPeriod      : 9 ,
+				SimpleMAOscillator: false,
+				SimpleMASignal    : false
+			}
+
+//                   var result =  MACD.calculate(macdInput);
+	   //   console.log("macdInput :"+JSON.stringify(macdInput))
+		   var macdData2 = MACD.calculate(macdInput)
+		   var ema10 = EMA.calculate({period : 10, values : prices})
+		   var ema20 = EMA.calculate({period : 20, values : prices})
+		//	console.log("Ema10 " + ema10)
+		   var hasEma10NhoHonEma20 = false;
+//        console.log("Ema10 " + ema10[ema10.length-1]  + "   " + ema20[ema20.length-1]
+//        +  "    Ema10-2 " + ema10[ema10.length-2]  + "   " + ema20[ema20.length-2]
+//         )
+
+		   if((ema10[ema10.length-1] < ema20[ema20.length-1])
+		//   &&( (ema10[ema10.length-2] > ema20[ema20.length-2]) || (ema10[ema10.length-3] > ema20[ema20.length-3]))
+		   )
+		   {
+		      console.log("EMA10 nho hon")
+				hasEma10NhoHon = true;
+	   //		await binance.futuresCancelAll(coinName2)
+		   }
+
+			return hasEma10NhoHon;
+	}
+		catch (err)
+		{
+	//	 console.log(err + "  " + coinName2  );
+	//	 log_str += err + "  " + coinName2 + "\n";
+
+	}
+}
+
+const checkEma5mLonHonForBuy = async(coinName2)=>{
+	try{
+
+		//	let macdData  = await macd(12,26,9,"close", "binance", "BNB/USDT",timeRequest,true);
+			let priceDatas = await client.candles({ symbol: coinName2, limit:1000,interval:"5m" })
+			var intersect_macd_index_array = []
+			var prices = []
+			var last50Prices = []
+
+
+			for(var i =0; i < priceDatas.length; i++)
+			{
+		   // console.log(coinName2 +"    "+i + "    priceDatas " + priceDatas[i].close)
+				prices.push(Number(priceDatas[i].close))
+			}
+
+			for(var i = 30; i >0; i--)
+			{
+		//	    console.log(i + "    priceDatas " + priceDatas[i].close)
+				last50Prices.push(Number(priceDatas[priceDatas.length-i].high))
+
+			}
+
+
+			var min = Math.min( ...last50Prices )
+			var max = Math.max( ...last50Prices )
+
+			var macdInput = {
+				values            : prices,
+				fastPeriod        : 12,
+				slowPeriod        : 26,
+				signalPeriod      : 9 ,
+				SimpleMAOscillator: false,
+				SimpleMASignal    : false
+			}
+
+//                   var result =  MACD.calculate(macdInput);
+	   //   console.log("macdInput :"+JSON.stringify(macdInput))
+		 //  var macdData2 = MACD.calculate(macdInput)
+		   var ema10 = EMA.calculate({period : 10, values : prices})
+		   var ema20 = EMA.calculate({period : 20, values : prices})
+		//	console.log("Ema10 " + ema10)
+		   var hasEma10LonHonEma20 = false;
+//        console.log("Ema10 " + ema10[ema10.length-1]  + "   " + ema20[ema20.length-1]
+//        +  "    Ema10-2 " + ema10[ema10.length-2]  + "   " + ema20[ema20.length-2]
+//         )
+
+		   if((ema10[ema10.length-1] > ema20[ema20.length-1])
+		//   &&( (ema10[ema10.length-2] > ema20[ema20.length-2]) || (ema10[ema10.length-3] > ema20[ema20.length-3]))
+		   )
+		   {
+		      console.log(coinName2 +"   EMA 10 lon hon")
+				hasEma10LonHonEma20 = true;
+	   //		await binance.futuresCancelAll(coinName2)
+		   }
+
+			return hasEma10LonHonEma20;
+	}
+		catch (err)
+		{
+	//	 console.log(err + "  " + coinName2  );
+	//	 log_str += err + "  " + coinName2 + "\n";
+
+	}
+}
+
+const checkEma5mCatLenForBuy = async(coinName2)=>{
+	try{
+
+		//	let macdData  = await macd(12,26,9,"close", "binance", "BNB/USDT",timeRequest,true);
+			let priceDatas = await client.candles({ symbol: coinName2, limit:1000,interval:"5m" })
 			var intersect_macd_index_array = []
 			var prices = []
 			var last50Prices = []
@@ -240,11 +372,11 @@ const checkEma5mForBuy = async(coinName2)=>{
 		   )
 		   {
 				hasGiaoCatEma5mForBuy = true;
-				console.log("Cat tu tren xuong")
+				console.log( coinName2 + "Cat tu duoi len ")
 	   //		await binance.futuresCancelAll(coinName2) 
 		   }
 	 
-			return hasGiaoCatEma5mForBuy;
+			return {hasGiaoCatEma5mForBuy};
 	}
 		catch (err)
 		{
@@ -335,15 +467,19 @@ const updatePriceForSell =async (coinName2,timeRequest, so_nen_check_giao_cat)=>
 					var oldTime = timeConverter(priceDatas[[priceDatas.length - 1] - intersect_macd_index_array[i+1]].closeTime)
 					var lastPrice = priceDatas[priceDatas.length - 1].close
 				//	console.log("so_nen_check_giao_cat " + so_nen_check_giao_cat)
+
+
+                  //   var isEma10NhoHon = checkEma5mLonHonForBuy(coinName2)
 					if((max / lastPrice) < 1.1 && (intersect_macd_index_array[i]  < 30)
-					&& (ema10[ema10.length-1] < ema20[ema20.length-1])
+				//	&& (ema10[ema10.length-1] < ema20[ema20.length-1])
+				//    && (isEma10NhoHon == true)
 					&& (macdData2[(macdData2.length -1)].MACD < macdData2[(macdData2.length -1)].signal)
 					)
 					{
 						total_coin_phanky+=1
 
 					//	bot.sendMessage(chatId, total_coin_phanky + "  " + timeRequest+  ", phan ki ban " + coinName2 +"  "+ intersect_macd_index_array[i]+"   " + lastPrice);
-						logStr += intersect_macd_index_array[i]+ "  "+  timeRequest +", phan ki giam " + coinName2 +"  ["+ intersect_macd_index_array[i]+" |"+ intersect_macd_index_array[i+1]+" ]  " + lastPrice +"\n"
+						logStr += intersect_macd_index_array[i]+ "  "+  timeRequest +", GIAM " + coinName2 +"  ["+ intersect_macd_index_array[i]+" |"+ intersect_macd_index_array[i+1]+" ]  " + lastPrice +"\n"
 					//	bot.sendMessage(chatId,logStr );
 						if((timeRequest == "5m") || (timeRequest == "15m") )
 						 {
@@ -358,7 +494,7 @@ const updatePriceForSell =async (coinName2,timeRequest, so_nen_check_giao_cat)=>
 							+ "  old price  :" + priceDatas[[priceDatas.length - 1] - intersect_macd_index_array[i+1]].close
 					//		+ "   oldtime  "  + oldTime
 							)
-							bot_check_log.sendMessage( chatId,coinName2 +"  " +" phan ki giam i :" + intersect_macd_index_array[i]
+							bot_check_log.sendMessage( chatId,coinName2 +"  " +" GIAM i :" + intersect_macd_index_array[i]
 							+ "  i+1  : " + intersect_macd_index_array[i+1]
 							+ " timeRequest  " + timeRequest
 					//		+ " macdData  "+ macdData2[[macdData2.length - 1] - intersect_macd_index_array[i]].MACD
@@ -369,7 +505,7 @@ const updatePriceForSell =async (coinName2,timeRequest, so_nen_check_giao_cat)=>
 							+ "  old price  :" + priceDatas[[priceDatas.length - 1] - intersect_macd_index_array[i+1]].close
 					//		+ "   oldtime  "  + oldTime
 							)
-						 	if( intersect_macd_index_array[i] < 20)
+						 	if( intersect_macd_index_array[i] < 15)
 							{
 						 		hasPhanKy = true;
 						 	}
@@ -543,13 +679,15 @@ const updatePriceForBuy =async (coinName2,timeRequest)=>{
                             var oldTime = timeConverter(priceDatas[[priceDatas.length - 1] - intersect_macd_index_array[i+1]].closeTime)
                             var lastPrice = priceDatas[priceDatas.length - 1].close
 
+                        //    var isEma10LonHon = checkEma5mLonHonForBuy(coinName2)
                             if((lastPrice / min) < 1.15 && (intersect_macd_index_array[i]  < 30)
-                         	&& (ema10[ema10.length-1] > ema20[ema20.length-1])
+                         	//&& (ema10[ema10.length-1] > ema20[ema20.length-1])
+                         //	&& (isEma10LonHon == true)
 								&&  (macdData2[(macdData2.length -1)].MACD > macdData2[(macdData2.length -1)].signal)
                             )
                             {
                                 total_coin_phanky+=1
-                               console.log( coinName2 + " phan ki tang i :" + intersect_macd_index_array[i]
+                               console.log( coinName2 + " TANG i :" + intersect_macd_index_array[i]
                                + "  i+1  : " + intersect_macd_index_array[i+1]
                                + "  timeRequest  " + timeRequest
                              //  + " macdData  "+ macdData2[[macdData2.length - 1] - intersect_macd_index_array[i]].MACD
@@ -561,7 +699,7 @@ const updatePriceForBuy =async (coinName2,timeRequest)=>{
                                + "  old price  :" + priceDatas[[priceDatas.length - 1] - intersect_macd_index_array[i+1]].close
                             //   + "   oldtime  "  + oldTime
                                )
-							   bot_check_log.sendMessage( chatId,coinName2 + " phan ki tang i :" + intersect_macd_index_array[i]
+							   bot_check_log.sendMessage( chatId,coinName2 + " TANG i :" + intersect_macd_index_array[i]
                                + "  i+1  : " + intersect_macd_index_array[i+1]
                                + "  timeRequest  " + timeRequest
                              //  + " macdData  "+ macdData2[[macdData2.length - 1] - intersect_macd_index_array[i]].MACD
@@ -576,7 +714,7 @@ const updatePriceForBuy =async (coinName2,timeRequest)=>{
                             //   console.log("Ema10 " + (ema10))
 
                                 coinDivergenceList.push(coinName2)
-                                logStr += intersect_macd_index_array[i]+ "  "+  timeRequest +", phan ki tang " + coinName2 +" [ "+ intersect_macd_index_array[i]+" | "+ intersect_macd_index_array[i+1]+"  ] " + lastPrice +"\n"
+                                logStr += intersect_macd_index_array[i]+ "  "+  timeRequest +", TANG " + coinName2 +" [ "+ intersect_macd_index_array[i]+" | "+ intersect_macd_index_array[i+1]+"  ] " + lastPrice +"\n"
                                 console.log( logStr)
                              //   bot.sendMessage(chatId,logStr );
 								// if((timeRequest == "5m") || (timeRequest == "15m") ){
@@ -654,17 +792,21 @@ const updatePrice = async(timeRequest )=>{
                       var test30m =  await  updatePriceForBuy(coinName2, "30m")
                       var test1h =  await  updatePriceForBuy(coinName2, "1h")
 
-                      if((test30m.hasPhanKy == true)||(test1h.hasPhanKy == true)||((test5m.hasPhanKy == true)&&(test15m.hasPhanKy == true)))
+                      if((test30m.hasPhanKy == true)||(test1h.hasPhanKy == true)
+                      ||((test15m.hasPhanKy == true)))
                       {
-                         if((test5m.hasPhanKy == true)||(test15m.hasPhanKy == true))
+                         if((test5m.hasPhanKy == true))
                          {
                              console.log("test5m phan ky buy " +test5m.hasPhanKy+ "   logData2  : "+ test5m.logStr)
                             var logData = test5m.logStr + test15m.logStr + test30m.logStr + test1h.logStr;
                               bot.sendMessage(chatId,logData );
                          }
 
-						 var hasGiaoCatEma5mForBuy = checkEma5mForBuy(coinName2);
-						 if(hasGiaoCatEma5mForBuy == true)
+						 var checkGiaoCatEma5mForBuy = await checkEma5mCatLenForBuy(coinName2);
+
+                         console.log("hasGiaoCatEma5mForBuy   "+ coinName2 + "  " + String(checkGiaoCatEma5mForBuy.hasGiaoCatEma5mForBuy))
+
+						 if(checkGiaoCatEma5mForBuy.hasGiaoCatEma5mForBuy == true)
                          {
 						//	console.log("phan ki 15 hoac 30 va giao cat 5m tu duoi len " +test5m.hasPhanKy+ "   logData2  : "+ test5m.logStr)
                            var logData = "Phan ky tang 15 hoac 30 va giao cat 5m tu duoi len  "  + test5m.logStr + test15m.logStr + test30m.logStr + test1h.logStr;
@@ -680,17 +822,20 @@ const updatePrice = async(timeRequest )=>{
                       var test30mShell = await   updatePriceForSell(coinName2, "30m",30)
                       var test1hShell =  await  updatePriceForSell(coinName2, "1h",30)
 				//	  console.log(coinName2 +"    test5m " +test5mShell.hasPhanKy+ "   logData2  : "+ test5mShell.logStr)
-                      if((test30mShell.hasPhanKy == true)||(test1hShell.hasPhanKy == true) || ((test5mShell.hasPhanKy == true)&&(test15mShell.hasPhanKy == true)))
+                      if((test30mShell.hasPhanKy == true)||(test1hShell.hasPhanKy == true)
+                      || ((test15mShell.hasPhanKy == true)))
                       {
-                         if((test5mShell.hasPhanKy == true)||(test15mShell.hasPhanKy == true))
+                         if((test5mShell.hasPhanKy == true))
                          {
 							console.log("test5m2 " +test5mShell.hasPhanKy+ "   logData2  : "+ test5mShell.logStr)
                             var logData = test5mShell.logStr + test15mShell.logStr + test30mShell.logStr + test1hShell.logStr;
                               bot.sendMessage(chatId,logData );
                          }
 
-						 var hasGiaoCatEma5mForShell = checkEma5mForSell(coinName2);
-						 if(hasGiaoCatEma5mForShell == true)
+						 var checkCatEma5mForShell = await checkEma5mCatXuongForSell(coinName2);
+						 console.log("hasGiaoCatEma5mForShell   "+ coinName2 + "  " + String(checkCatEma5mForShell.hasGiaoCatEma5mForShell))
+
+						 if(checkCatEma5mForShell.hasGiaoCatEma5mForShell == true)
                          {
 							//console.log("phan ki 15 hoac 30 va giao cat 5m tu tren xuong " +test5mShell.hasPhanKy+ "   logData2  : "+ test5mShell.logStr)
                             var logData = "Phan ky ban 15 hoac 30 va giao cat 5m tu tren xuong  "  +test5mShell.logStr + test15mShell.logStr + test30mShell.logStr + test1hShell.logStr;
