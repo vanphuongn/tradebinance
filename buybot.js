@@ -17,6 +17,10 @@ const token = '5967294536:AAHR4YyRbr5OdMMfVn7xvc3xFLAITBQGw4I';
 const chatId = "662991734";
 const bot = new TelegramBot(token,{polling:true});
 
+const token_check_log_ = "6166932215:AAEbZ28_7Um4n3K64DOOA1BRisiSTg9siBQ"
+const bot_check_log = new TelegramBot(token_check_log_,{polling:true});
+
+
 
 const {StochasticRSI} = require('technicalindicators');
 
@@ -119,7 +123,7 @@ var coinDivergenceList = []
 so_nen_check_giao_cat = 20
 currentSymbols = []
 
-var checkPinbarUp = function(open, high, low, close){
+var checkPinbarUp = function(open, high, low, close, coinName = ""){
     var long = high - low
     var belowTail =  0
 
@@ -131,7 +135,28 @@ var checkPinbarUp = function(open, high, low, close){
 
      if((belowTail) > (0.65 * long))
      {
-        console.log("belowTail / long " + (belowTail/long) + "open : " + open + " close " + close + " low "+ low + "  high "+ high)
+        console.log(coinName + "   belowTail / long " + (belowTail/long) + "open : " + open + " close " + close + " low "+ low + "  high "+ high)
+        bot_check_log.sendMessage(chatId, coinName + "   belowTail / long  " + (belowTail/long) + "open : " + open + " close " + close + " low "+ low + "  high "+ high)
+
+        return true;
+     }else {
+        return false;
+     }
+}
+var checkPinbarDown = function(open, high, low, close){
+    var long = high - low
+    var belowTail =  0
+
+    if(open > close){
+        aboveTail = high - open
+    }else if(open <= close){
+        aboveTail = high - close
+    }
+
+     if((aboveTail) > (0.65 * long))
+     {
+      console.log(coinName + "   aboveTail / long  " + (aboveTail/long) + "open : " + open + " close " + close + " low "+ low + "  high "+ high)
+        bot_check_log.sendMessage(chatId, coinName + "   aboveTail / long  " + (belowTail/long) + "open : " + open + " close " + close + " low "+ low + "  high "+ high)
 
         return true;
      }else {
@@ -148,10 +173,10 @@ var checkPinbarForBuy = async(coinName2)=>{
 			var lastestCandleIsPinbarUp15m = false
 			var lastestCandleIsPinbarUp15m2 = false
 			lastestCandleIsPinbarUp15m = checkPinbarUp(price15mDatas[price15mDatas.length-1].open, price15mDatas[price15mDatas.length-1].high,
-                price15mDatas[price15mDatas.length-1].low,price15mDatas[price15mDatas.length-1].close)
+                price15mDatas[price15mDatas.length-1].low,price15mDatas[price15mDatas.length-1].close,coinName2)
 
             lastestCandleIsPinbarUp15m2 = checkPinbarUp(price15mDatas[price15mDatas.length-2].open, price15mDatas[price15mDatas.length-2].high,
-                price15mDatas[price15mDatas.length-2].low,price15mDatas[price15mDatas.length-2].close)
+                price15mDatas[price15mDatas.length-2].low,price15mDatas[price15mDatas.length-2].close,coinName2)
 
              await wait(100);
 
@@ -160,20 +185,20 @@ var checkPinbarForBuy = async(coinName2)=>{
 			var lastestCandleIsPinbarUp30m = false
 			var lastestCandleIsPinbarUp30m2 = false
 			lastestCandleIsPinbarUp30 = checkPinbarUp(price30mDatas[price30mDatas.length-1].open, price30mDatas[price30mDatas.length-1].high,
-                price30mDatas[price30mDatas.length-1].low,price30mDatas[price30mDatas.length-1].close)
+                price30mDatas[price30mDatas.length-1].low,price30mDatas[price30mDatas.length-1].close,coinName2)
             lastestCandleIsPinbarUp30m2 = checkPinbarUp(price30mDatas[price30mDatas.length-2].open, price30mDatas[price30mDatas.length-2].high,
-                price30mDatas[price30mDatas.length-2].low,price30mDatas[price30mDatas.length-2].close)
+                price30mDatas[price30mDatas.length-2].low,price30mDatas[price30mDatas.length-2].close,coinName2)
 
             await wait(100);
 
             let price1hDatas = await client.candles({ symbol: coinName2, limit:10,interval:"1h" })
             var lastestCandleIsPinbarUp1h = false
             lastestCandleIsPinbarUp1h = checkPinbarUp(price1hDatas[price1hDatas.length-2].open, price1hDatas[price1hDatas.length-2].high,
-                price1hDatas[price1hDatas.length-2].low,price1hDatas[price1hDatas.length-2].close)
+                price1hDatas[price1hDatas.length-2].low,price1hDatas[price1hDatas.length-2].close,coinName2)
 
             var lastestCandleIsPinbarUp1h2 = false
             lastestCandleIsPinbarUp1h2 = checkPinbarUp(price1hDatas[price1hDatas.length-2].open, price1hDatas[price1hDatas.length-2].high,
-                price1hDatas[price1hDatas.length-2].low,price1hDatas[price1hDatas.length-2].close)
+                price1hDatas[price1hDatas.length-2].low,price1hDatas[price1hDatas.length-2].close,coinName2)
 
             if((lastestCandleIsPinbarUp15m == true) ||(lastestCandleIsPinbarUp15m2 == true)
             (lastestCandleIsPinbarUp30m == true)||(lastestCandleIsPinbarUp30m2 == true)
@@ -248,23 +273,7 @@ var checkPinbarForShell = async(coinName2)=>{
 }
 
 
-var checkPinbarDown = function(open, high, low, close){
-    var long = high - low
-    var belowTail =  0
 
-    if(open > close){
-        aboveTail = high - open
-    }else if(open <= close){
-        belowTail = high - close
-    }
-
-     if((belowTail) > (0.65 * long))
-     {
-        return true;
-     }else {
-        return false;
-     }
-}
 
 
 const updatePriceForSell =async (coinName2,timeRequest, so_nen_check_giao_cat)=>{
