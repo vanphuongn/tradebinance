@@ -1,30 +1,51 @@
 var Binance = require('binance-api-node').default;
-const ema = require('trading-indicator').ema;
+//const ema = require('trading-indicator').ema;
 const kdj = require('kdj').kdj;
 const macd = require('trading-indicator').macd;
 const TelegramBot = require('node-telegram-bot-api');
-
+var MACD = require('technicalindicators').MACD;
+var EMA = require('technicalindicators').EMA
 var express = require('express');
 var app     = express();
-
+const WebSocketClient = require('ws')
 app.set('port', (process.env.PORT || 5000));
 
 //For avoidong Heroku $PORT error
-const token = '1677444880:AAHC0UgHkuf0Y7NqsubVJSN4Q0WpPfFOYb8';
+//const token = '1677444880:AAHC0UgHkuf0Y7NqsubVJSN4Q0WpPfFOYb8';
+const token = '5967294536:AAHR4YyRbr5OdMMfVn7xvc3xFLAITBQGw4I';
+
 const chatId = "662991734";
 const bot = new TelegramBot(token,{polling:true});
 
 
-var accountInfo;
 const {StochasticRSI} = require('technicalindicators');
 
-const client = Binance({
-
-	apiKey: 'dB3Ig87GhzpCeNlwAtq6tj7YLdDgA2W4CAKPY44u6fVTyTChtZfoI5EWVseZOasV',
-	apiSecret:'sI908B3erDr0s1WRvr9pfoYmHw7PntWEvM8b46jPPUUWaCIYXDBrqgMj3w2LSbwh',
+//const client = Binance().options({
+//
+//	apiKey: '6oHHrDBqe5pra9PhYEoafxbNMANrLW1XNR75B1Lqe3sFAetMapH5P18SmCRGYvPx',
+//	apiSecret:'8bvKE2GciMLJHNTPpLIDOwGDG8sCOUs7dUTUQFnad3RbuulIjXYwyC4CzhYVII4H',
+//	useServerTime:true,
+//
+//});
+const client = new Binance({
+   apiKey: '6oHHrDBqe5pra9PhYEoafxbNMANrLW1XNR75B1Lqe3sFAetMapH5P18SmCRGYvPx',
+	apiSecret:'8bvKE2GciMLJHNTPpLIDOwGDG8sCOUs7dUTUQFnad3RbuulIjXYwyC4CzhYVII4H',
 	useServerTime:true,
+    recvWindow: 1000, // Set a higher recvWindow to increase response timeout
+
+
 });
-client.sy
+
+//client.websockets.chart("BNBBTC", "1m", async (symbol, interval, chart) => {
+//    let tick = await client.last(chart);
+//    const last = chart[tick].close;
+//
+//    // Optionally convert 'chart' object to array:
+//    const ohlc = binance.ohlc(chart);
+//    console.log(ohlc);
+//});
+
+
 var log_str = "";
 
 app.get('/', function(request, response) {
@@ -42,7 +63,6 @@ let sellOrderInfo = null;
 let INDEX_USDT = 11;
 const PRICE_UPDATE_PERIOD = 5000; // Price update times varies a lot
 const ORDER_UPDATE_PERIOD = 3000;
-var accountInfo;
 
 let coin_name = 'ETHUSDT';
 let INDEX_COINT = 2;
@@ -65,492 +85,565 @@ let ema10 = 0;
 let ema20 = 0;
 let ema50 = 0;
 
-let timeRequest = "15m";
+let timeRequest = "30m";
 let prices ;
 
-const stepSizeMap = new Map();
-const priceBuyMap = new Map();
-const updateEMA = async()=>{
+function timeConverter(UNIX_timestamp){
+  var a = new Date(UNIX_timestamp );
+  var months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  var year = a.getFullYear();
+  var month = months[a.getMonth()];
+  var date = a.getDate();
+  var hour = a.getHours();
+  var min = a.getMinutes();
+  var sec = a.getSeconds();
+  var time = date + ' ' + month + ' ' + year + ' ' + hour + ':' + min + ':' + sec ;
+  return time;
+}
+
+var MACD = require('technicalindicators').MACD;
+//var macdInput = {
+//  values            : [127.75,129.02,132.75,145.40,148.98,137.52,147.38,139.05,137.23,149.30,162.45,178.95,200.35,221.90,243.23,243.52,286.42,280.27],
+//  fastPeriod        : 5,
+//  slowPeriod        : 8,
+//  signalPeriod      : 3 ,
+//  SimpleMAOscillator: false,
+//  SimpleMASignal    : false
+//}
+//
+//console.log("macd  "+JSON.stringify(MACD.calculate(macdInput)));
+
+requestTime = "30m"
+var total_coin_phanky = 0
+var coinDivergenceList = []
+so_nen_check_giao_cat = 20
+currentSymbols = []
+
+var checkPinbarUp = function(open, high, low, close){
+    var long = high - low
+    var belowTail =  0
+
+    if(open > close){
+        belowTail = close - low
+    }else if(open <= close){
+        belowTail = open - low
+    }
+
+     if((belowTail) > (0.65 * long))
+     {
+        console.log("belowTail / long " + (belowTail/long) + "open : " + open + " close " + close + " low "+ low + "  high "+ high)
+
+        return true;
+     }else {
+        return false;
+     }
+}
+
+var checkPinbarDown = function(open, high, low, close){
+    var long = high - low
+    var belowTail =  0
+
+    if(open > close){
+        aboveTail = high - open
+    }else if(open <= close){
+        belowTail = high - close
+    }
+
+     if((belowTail) > (0.65 * long))
+     {
+        return true;
+     }else {
+        return false;
+     }
+}
+
+
+const updatePriceForSell =async (coinName2,timeRequest, so_nen_check_giao_cat)=>{
+	try{
+
+		//	let macdData  = await macd(12,26,9,"close", "binance", "BNB/USDT",timeRequest,true);
+			let priceDatas = await client.candles({ symbol: coinName2, limit:1000,interval:timeRequest })
+			var intersect_macd_index_array = []
+			var prices = []
+			var last50Prices = []
+			var lastestCandleIsPinbarDown = false
+			for(var i =0; i < priceDatas.length; i++)
+			{
+		   // console.log(coinName2 +"    "+i + "    priceDatas " + priceDatas[i].close)
+				prices.push(Number(priceDatas[i].close))
+			}
+
+            lastestCandleIsPinbarDown = checkPinbarDown(priceDatas[priceDatas.length-1].open, priceDatas[priceDatas.length-1].high,
+                priceDatas[priceDatas.length-1].low,priceDatas[priceDatas.length-1].close)
+
+			for(var i = 30; i >0; i--)
+			{
+		//	    console.log(i + "    priceDatas " + priceDatas[i].close)
+				last50Prices.push(Number(priceDatas[priceDatas.length-i].high))
+
+			}
+			var min = Math.min( ...last50Prices )
+			var max = Math.max( ...last50Prices )
+//                     console.log("last50Prices     " + last50Prices
+//                      + "  min  " + min
+//                      )
+//                     for(var i =0; i < prices.length; i++)
+//                        {
+//                            console.log(i + "    priceDatas " + prices[i])
+//
+//                        }
+
+
+			   var macdInput = {
+				  values            : prices,
+				  fastPeriod        : 12,
+				  slowPeriod        : 26,
+				  signalPeriod      : 9 ,
+				  SimpleMAOscillator: false,
+				  SimpleMASignal    : false
+				}
+
+//                   var result =  MACD.calculate(macdInput);
+	   //   console.log("macdInput :"+JSON.stringify(macdInput))
+		   var macdData2 = MACD.calculate(macdInput)
+		   var ema10 = EMA.calculate({period : 10, values : prices})
+		   var ema20 = EMA.calculate({period : 20, values : prices})
+
+	   //   console.log("macd :"+JSON.stringify(macdData2))
+		 // console.log("macd length:"+macdData2.length)
+
+			for(var i = 0;  i < macdData2.length;i++)
+			{
+				if( (macdData2[(macdData2.length -1)-i].MACD < macdData2[(macdData2.length -1)-i].signal)
+				&& (macdData2[(macdData2.length -1)-(i+1)].MACD > macdData2[(macdData2.length -1)-(i+1)].signal)
+				)
+				{
+		 //           console.log(i  +"  macdData  " + macdData2[i].MACD)
+					intersect_macd_index_array.push(i)
+				}
+		   }
+		 //   console.log("  intersect_macd_index_array length  " + intersect_macd_index_array.length)
+		 var hasPhanKy = false;
+		 var logStr = "";
+
+		   for(var i = 0; i < intersect_macd_index_array.length -1; i++)
+		   {
+				// console.log("  intersect_macd_index_array i  " + intersect_macd_index_array[i])
+				if( (macdData2[[macdData2.length - 1] -intersect_macd_index_array[i]].MACD < macdData2[[macdData2.length - 1] - intersect_macd_index_array[i+1]].MACD)
+
+					&&  priceDatas[[priceDatas.length - 1] - intersect_macd_index_array[i]].close > priceDatas[[priceDatas.length - 1] - intersect_macd_index_array[i+1]].close
+				)
+				{
+					var time = timeConverter(priceDatas[[priceDatas.length - 1] - intersect_macd_index_array[i]].closeTime)
+					var oldTime = timeConverter(priceDatas[[priceDatas.length - 1] - intersect_macd_index_array[i+1]].closeTime)
+					var lastPrice = priceDatas[priceDatas.length - 1].close
+				//	console.log("so_nen_check_giao_cat " + so_nen_check_giao_cat)
+					if((max / lastPrice) < 1.05 && (intersect_macd_index_array[i]  < 30)
+				//	&& (ema10[ema10.length-1] < ema20[ema20.length-1])
+                    && (lastestCandleIsPinbarDown == true)
+					&& (macdData2[(macdData2.length -1)].MACD < macdData2[(macdData2.length -1)].signal)
+					)
+					{
+						total_coin_phanky+=1
+
+					//	bot.sendMessage(chatId, total_coin_phanky + "  " + timeRequest+  ", phan ki ban " + coinName2 +"  "+ intersect_macd_index_array[i]+"   " + lastPrice);
+						logStr += total_coin_phanky+ "  "+  timeRequest +", phan ki giam + pinbar " + coinName2 +"  "+ intersect_macd_index_array[i]+"   " + lastPrice +"\n"
+					//	bot.sendMessage(chatId,logStr );
+                        hasPhanKy = true
+					}
+				}
+		   	}
+		   		return {hasPhanKy,logStr}
+			}
+			 catch (err)
+			  {
+		   //	 console.log(err + "  " + coinName2  );
+		   //	 log_str += err + "  " + coinName2 + "\n";
+
+			}
+}
+
+
+const updatePriceForBuy =async (coinName2,timeRequest)=>{
+        try{
+
+         //         console.log("timeRequest  " + timeRequest + "  , coinName :  " +coinName2 )
+                //	let macdData  = await macd(12,26,9,"close", "binance", "BNB/USDT",timeRequest,true);
+
+                   let priceDatas =   await client.candles({ symbol: coinName2, limit:1000,interval:timeRequest })
+                     // live candles
+
+//               let priceDatas =     client.ws.candles(tickers => {
+//                      console.log(tickers)
+//                    })
+//                     client.ws.candles('ETHBTC', '1s', candle => {
+//                      console.log(candle)
+//                    })
+
+                    var intersect_macd_index_array = []
+                    var prices = []
+                    var last50Prices = []
+                    var lastestCandleIsPinbarUp = false
+
+                    for(var i =0; i < priceDatas.length; i++)
+                    {
+                	   //  console.log(coinName2+ "   "+i + "    priceDatas " + priceDatas[i].close)
+                        prices.push(Number(priceDatas[i].close))
+                    }
+                       console.log("COiname " + coinName2 + "  timerequest " + timeRequest)
+                    lastestCandleIsPinbarUp = checkPinbarUp(priceDatas[priceDatas.length-1].open, priceDatas[priceDatas.length-1].high,
+                        priceDatas[priceDatas.length-1].low,priceDatas[priceDatas.length-1].close)
+
+                    for(var i = 30; i >0; i--)
+                    {
+                //	    console.log(i + "    priceDatas " + priceDatas[i].close)
+                        last50Prices.push(Number(priceDatas[priceDatas.length-i].low))
+                    }
+                    var min = Math.min( ...last50Prices )
+				//	var min = Math.min( ...last50Prices )
+					var max = Math.max( ...last50Prices )
+    //                     console.log("last50Prices     " + last50Prices
+    //                      + "  min  " + min
+    //                      )
+    //                     for(var i =0; i < prices.length; i++)
+    //                        {
+    //                            console.log(i + "    priceDatas " + prices[i])
+    //
+    //                        }
+
+
+                       var macdInput = {
+                          values            : prices,
+                          fastPeriod        : 12,
+                          slowPeriod        : 26,
+                          signalPeriod      : 9 ,
+                          SimpleMAOscillator: false,
+                          SimpleMASignal    : false
+                        }
+
+    //                   var result =  MACD.calculate(macdInput);
+               //   console.log("macdInput :"+JSON.stringify(macdInput))
+                   var macdData2 = MACD.calculate(macdInput)
+                   var ema10 = EMA.calculate({period : 10, values : prices})
+                   var ema20 = EMA.calculate({period : 20, values : prices})
+
+				   if((timeRequest == "5m") || (timeRequest == "15m") )
+				   {
+					//	console.log(  await client.futuresOpenOrders() );
+
+						for(var i = 0; i < currentSymbols.length ;i++)
+						{
+					   //	var symbol = currentSymbols[i]
+						 // console.log(   currentSymbols[i].symbol);
+						 // console.log( currentSymbols[i].positionSide);
+						   if(coinName2 ==  currentSymbols[i].symbol)
+						   {
+
+							   if(String(currentSymbols[i].positionSide) == "SHORT")
+							   {
+									console.log(timeRequest +"Trung coin name" + coinName2 + "   ema 10 " + ema10[ema10.length-1] + "  ema20  " + ema20[ema20.length-1])
+									var xxx = ema10[ema10.length-1] -  ema20[ema20.length-1]
+									console.log( "xxx    " + xxx)
+									if((ema10[ema10.length-1] > ema20[ema20.length-1]) && (ema10[ema10.length-2] < ema20[ema20.length-2])
+
+									)
+									{
+										bot.sendMessage(chatId,timeRequest +"   Canh bao: Can Than Lo  " + coinName2 + "   ema 10 " + ema10[ema10.length-1] + "  ema20  " + ema20[ema20.length-1]);
+										bot.sendMessage(chatId,timeRequest +"   Canh bao: Can Than Lo  " + coinName2 + "   ema 10 " + ema10[ema10.length-1] + "  ema20  " + ema20[ema20.length-1]);
+									}
+									if( priceDatas[priceDatas.length - 1].close  > max )
+									{
+										bot.sendMessage(chatId,timeRequest +"   Canh bao: Can Than Lo  " + coinName2 + " Gia cao hon gia min");
+										bot.sendMessage(chatId,timeRequest +"   Canh bao: Can Than Lo  " + coinName2 + " Gia cao hon gia min");
+									}
+
+							   }else if(String(currentSymbols[i].positionSide) == "LONG")
+							   {
+								//	console.log("Trung coin name" + coinName2)
+								if((ema10[ema10.length-1] < ema20[ema20.length-1]) &&(ema10[ema10.length-2] > ema20[ema20.length-2]) )
+								{
+									bot.sendMessage(chatId,timeRequest +"   Canh bao: Can Than Lo  " + coinName2 + "   ema 10 " + ema10[ema10.length-1] + "  ema20  " + ema20[ema20.length-1]);
+									bot.sendMessage(chatId,timeRequest +"    Canh bao: Can Than Lo  " + coinName2 + "   ema 10 " + ema10[ema10.length-1] + "  ema20  " + ema20[ema20.length-1]);
+								}
+
+								if( priceDatas[priceDatas.length - 1].close  < min )
+								{
+									bot.sendMessage(chatId,timeRequest +"   Canh bao: Can Than Lo  " + coinName2 + " Gia thap hon gia min");
+									bot.sendMessage(chatId,timeRequest +"   Canh bao: Can Than Lo  " + coinName2 + " Gia thap hon gia min");
+								}
+							   }
+						   }
+						}
+					}
+
+               //  console.log("macd :"+JSON.stringify(macdData2))
+                 // console.log("macd length:"+macdData2.length)
+
+                    for(var i = 0;  i < macdData2.length;i++)
+                    {
+                        if( (macdData2[(macdData2.length -1)-i].MACD > macdData2[(macdData2.length -1)-i].signal)
+                        && (macdData2[(macdData2.length -1)-(i+1)].MACD < macdData2[(macdData2.length -1)-(i+1)].signal)
+                        )
+                        {
+                     //       console.log(i  +"  macdData  " + macdData2[i].MACD)
+                            intersect_macd_index_array.push(i)
+                        }
+                   }
+                 //   console.log("  intersect_macd_index_array length  " + intersect_macd_index_array.length)
+
+                    var hasPhanKy = false;
+                    var logStr = "";
+
+                     //  console.log("intersect_macd_index_array "+ intersect_macd_index_array.length)
+                   for(var i = 0; i < intersect_macd_index_array.length-1; i++)
+                   {
+                  //       console.log("  intersect_macd_index_array i  " + intersect_macd_index_array[i])
+                        if( (macdData2[[macdData2.length - 1] -intersect_macd_index_array[i]].MACD > macdData2[[macdData2.length - 1] - intersect_macd_index_array[i+1]].MACD)
+                            &&  priceDatas[[priceDatas.length - 1] - intersect_macd_index_array[i]].close < priceDatas[[priceDatas.length - 1] - intersect_macd_index_array[i+1]].close
+                        )
+                        {
+                            var time = timeConverter(priceDatas[[priceDatas.length - 1] - intersect_macd_index_array[i]].closeTime)
+                            var oldTime = timeConverter(priceDatas[[priceDatas.length - 1] - intersect_macd_index_array[i+1]].closeTime)
+                            var lastPrice = priceDatas[priceDatas.length - 1].close
+
+                            if((lastPrice / min) < 1.15 && (intersect_macd_index_array[i]  < 30)
+                         //	&& (ema10[ema10.length-1] > ema20[ema20.length-1])
+                                && (lastestCandleIsPinbarUp == true)
+								&&  (macdData2[(macdData2.length -1)].MACD > macdData2[(macdData2.length -1)].signal)
+                            )
+                            {
+                               total_coin_phanky+=1
+                               console.log( coinName2 + " phan ki tang i :" + intersect_macd_index_array[i]
+                               + "  i+1  : " + intersect_macd_index_array[i+1]
+                               + "  timeRequest  " + timeRequest
+                               + " macdData  "+ macdData2[[macdData2.length - 1] - intersect_macd_index_array[i]].MACD
+                               + " macdData  old "+ macdData2[[macdData2.length - 1] - intersect_macd_index_array[i+1]].MACD
+                               + "  lastestPrice  " + lastPrice
+                               + "   price  :" + priceDatas[[priceDatas.length - 1] - intersect_macd_index_array[i]].close
+
+                               + "   time  "  + time
+                               + "  old price  :" + priceDatas[[priceDatas.length - 1] - intersect_macd_index_array[i+1]].close
+                               + "   oldtime  "  + oldTime
+                               )
+
+                            //   console.log("Ema10 " + (ema10))
+
+                                coinDivergenceList.push(coinName2)
+                                logStr += total_coin_phanky+ "  "+  timeRequest +", phan ki tang " + coinName2 +"  "+ intersect_macd_index_array[i]+"   " + lastPrice +"\n"
+                                                           console.log( logStr)
+                             //   bot.sendMessage(chatId,logStr );
+								// if((timeRequest == "5m") || (timeRequest == "15m") ){
+								// 	if(intersect_macd_index_array[i] < 20){
+								// 	hasPhanKy = true;
+								// 	}
+								// }
+								hasPhanKy = true;
+//								if((timeRequest == "5m") || (timeRequest == "15m") )
+//								{
+//
+//									if( intersect_macd_index_array[i] < 15)
+//								   {
+//										hasPhanKy = true;
+//									}
+//								}
+//								else{
+//								   hasPhanKy = true;
+//								}
+                            }
+                        }
+
+                     //   console.log("  i  " + i )
+                   }
+
+                //   console.log("hasPhanKy phan ky  " + hasPhanKy + "   " + logStr)
+                   return {hasPhanKy,logStr}
+
+    //               for (var i = 0; i <ergenceList.length; i++){
+    //                    var coinName = coinDivergenceList[i]
+    //                    console.log("Con phan ky  " + coinName)
+    //
+    //               }
+
+                 }
+
+        catch (err)
+        {
+    //	 console.log(err + "  " + coinName2  );
+    //	 log_str += err + "  " + coinName2 + "\n";
+        // continue;
+        }
+}
+
+const updatePrice = async(timeRequest )=>{
     try {
-     
-	
+
+		let accountInfo = await client.accountInfo();
+
+	//	prices = await client.prices();
 		prices = await client.futuresPrices();
 		let pricesArr = Object.keys(prices);
-
-			for(var i = 0; i < pricesArr.length; i++)
-			 {
-					var symbolName = pricesArr[i].toString();
-					//console.log("symbolName   "+ symbolName)
-					var coinName ;
-					if(symbolName.includes("USDT"))
-					{
-
-						coinNameChars = symbolName.split("USDT");
-						coinName= coinNameChars[0]+ "/"+ "USDT"
-					
-					try{
-						
-				
-			      	let macdData  = await macd(12,26,9,"close", "binance", coinName,timeRequest,true);
-			      	let m_Macd = macdData[macdData.length-1].MACD;
-
-			      	let m_Macd_signal = macdData[macdData.length-1].signal;
-			      	let macd_histogram_1 = macdData[macdData.length-1].histogram;
-					let macd_histogram_2 = macdData[macdData.length-2].histogram;
-			   		//console.log("MACD  1 "+macdData[macdData.length-1].MACD, " histogram:"  + macdData[macdData.length-1].histogram," sigal  " +macdData[macdData.length-1].signal);
-					//console.log("MACD  2 "+macdData[macdData.length-2].MACD, " histogram:"  + macdData[macdData.length-2].histogram," sigal  " +macdData[macdData.length-2].signal);
-					//console.log("MACD  3 "+macdData[macdData.length-3].MACD, " histogram:"  + macdData[macdData.length-3].histogram," sigal  " +macdData[macdData.length-3].signal);
+         total_coin_phanky = 0
+	     coinDivergenceList = []
 
 
-			        let ema10Data = await ema(10, "close", "binance", coinName, timeRequest, true)
-			        ema10_0 = ema10Data[ema10Data.length - 1];
-			        ema10_1 = ema10Data[ema10Data.length - 2];
+		currentSymbols = await client.futuresOpenOrders()
+		//  currentSymbols = []
+		//  currentSymbols = await client.futuresOpenOrders()
+		 console.log(currentSymbols);
 
-			       console.log("  -  " + coinName + "  " + ema10_1 );
-			     //	console.log("Ema 20 : " + ema10Data[ema10Data.length - 1] + "   ,  " + ema10Data[ema10Data.length - 2]);
+       for(var coinIndex = 0; coinIndex < pricesArr.length; coinIndex++)
+         {
+               var coinName2 = pricesArr[coinIndex].toString() ;
+            //	var coinName = "BNBUSDT"
+               if(coinName2.includes("USDT"))
+                {
+                    try{
+                //  var test5m = await updatePriceForBuy("BTCUSDT", "4h")
+               // console.log("test5m " +coinName2)
+			   				  // check for buy
+			   		//var test3m =   await updatePriceForBuy(coinName2, "3m")
+                 //   var test5m =   await updatePriceForBuy(coinName2, "5m")
+                      var test15m =  await  updatePriceForBuy(coinName2, "15m")
+                      var test30m =  await  updatePriceForBuy(coinName2, "30m")
+                      var test1h =  await  updatePriceForBuy(coinName2, "1h")
 
-			        let ema20Data = await ema(20, "close", "binance", coinName, timeRequest, true)
-			        ema20_0 = ema20Data[ema20Data.length - 1];
-		     		ema20_1 = ema20Data[ema20Data.length - 2];
+                      if((test30m.hasPhanKy == true)||(test1h.hasPhanKy == true) ||(test15m.hasPhanKy == true)))
+                      {
+                       //  if((test5m.hasPhanKy == true)||(test15m.hasPhanKy == true))
+                         {
+                             console.log("test5m phan ky buy " +test5m.hasPhanKy+ "   logData2  : "+ test5m.logStr)
+                            var logData = test5m.logStr + test15m.logStr + test30m.logStr + test1h.logStr;
+                              bot.sendMessage(chatId,logData );
+                         }
+                      }
 
-			        let ema50Data = await ema(50, "close", "binance", coinName, timeRequest, true)
-			        ema50_0 = ema50Data[ema50Data.length - 1];
-					ema50_1 = ema50Data[ema50Data.length - 2];
+					  // check for shell
+				//	  var test3mShell =  await updatePriceForSell(coinName2, "3m", 30)
+					 // var test5mShell =  await updatePriceForSell(coinName2, "5m", 30)
+                      var test15mShell =  await   updatePriceForSell(coinName2, "15m",30)
+                      var test30mShell = await   updatePriceForSell(coinName2, "30m",30)
+                      var test1hShell =  await  updatePriceForSell(coinName2, "1h",30)
+				//	  console.log(coinName2 +"    test5m " +test5mShell.hasPhanKy+ "   logData2  : "+ test5mShell.logStr)
+                      if((test30mShell.hasPhanKy == true)||(test1hShell.hasPhanKy == true) || ((test5mShell.hasPhanKy == true)&&(test15mShell.hasPhanKy == true)))
+                      {
+                        // if((test5mShell.hasPhanKy == true)||(test15mShell.hasPhanKy == true))
+                         {
+							console.log("test5m2 " +test5mShell.hasPhanKy+ "   logData2  : "+ test5mShell.logStr)
+                            var logData = test5mShell.logStr + test15mShell.logStr + test30mShell.logStr + test1hShell.logStr;
+                            bot.sendMessage(chatId,logData );
+                         }
+                      }
 
-					if(((ema10_1 < ema20_1) || (ema10_1 < ema50_1)||(ema20_1 < ema50_1))
-					 &&((ema10_0 > ema20_0) && (ema10_0 > ema50_0) && (ema20_0 > ema50_0) ) 
-					// && (m_Macd > m_Macd_signal)
-					// && (macd_histogram_2 < macd_histogram_1)
-					 )
-					{
-								bot.sendMessage(chatId, " Ema tang " + coinName +"   " + ema10);
-								console.log("coin name " + coinName );
-								log_str += " Ema tang " + coinName +"   " + ema10 +"\n";
+                      //  console.log("value  " + value)
+                    }catch(err){
+                        continue;
+                    }
+                //	coinNameChars = coinName.split("USDT");
+                //	coinName= coinNameChars[0]+ "/"+ "USDT"
 
-								try {
-									console.log("BUy symbol Name :"+ symbolName)
-									buySuccess = await buy(symbolName);	
-								} catch (e) {
-									console.error('ERROR IN buy(): ', e);
-									console.log('RESUMING OPERATIONS\n');
-								//	continue;
-								}
-								// if(buySuccess === 'failure') continue;
-					}
-			   	 }
-			   	  catch (err)
-			   	   {
-      		 		 console.log(err + "  " + coinName  );
-      		 		 log_str += err + "  " + coinName + "\n";
-      		 		 continue;
-    				}
-    			}
-			}
+                }
+                await wait(1000);
+        }
+
+
     } catch (err) {
-    	// log_str += err + "  " + coinName + "\n";
-        console.log(err + "\n");
+    //	 log_str += err + "  " + coinName + "\n";
+       console.log(err + "\n");
     }
 }
-
-function roundStep(qty, stepSize) {
-    // Integers do not require rounding
-    if (Number.isInteger(qty)) return qty;
-    const qtyString = qty.toFixed(16);
-    const desiredDecimals = Math.max(stepSize.indexOf('1') - 1, 0);
-    const decimalIndex = qtyString.indexOf('.');
-    return parseFloat(qtyString.slice(0, decimalIndex + desiredDecimals + 1));
-}
-
-// create order
-const makeBuyOrder = async(symbolName, buyQuantity, currentPrice)=>{
-	console.log("Make buy order " + buyQuantity + " price. " + currentPrice);
-
-	if(buyQuantity > 0)
-	{
-		buyOrderInfo = await client.order({
-
-			symbol: symbolName,
-			side: 'BUY',
-			quantity: buyQuantity,
-			price: currentPrice,
-		});
-		console.log('buyOrderInfo: ', buyOrderInfo, '\n');
-	}
-}
-// wait buy order completely
-
-const waitBuyOrderCompetion = async(symbolName)=>{
-
-	console.log('WAITING BUY ORDER COMPLETION');
-
-	for(let i = 0; i < 5;i++){
-		buyOrderInfo = await client.getOrder({
-			symbol: symbolName,
-  			orderId: buyOrderInfo.orderId,
-		});
-		// console.log('buyOrderInfo: ', buyOrderInfo);
-		if(buyOrderInfo.status === 'FILLED'){
-			console.log('PURCHASE COMPLETE! \n');
-			return 'success';
-		}
-		await wait(ORDER_UPDATE_PERIOD);
-	}
-	if(buyOrderInfo.status === 'PARTIALLY_FILLED'){
-		console.log('PURCHASE PARTIALLY FILLED, CONTINUING');
-		while(true){
-			buyOrderInfo = await client.getOrder({
-				symbol: symbolName,
-				orderId: buyOrderInfo.orderId,
-			});
-			if(buyOrderInfo.status === 'FILLED'){
-				console.log('PURCHASE COMPLETE! \n');
-				return 'success';
-			}
-			await wait(ORDER_UPDATE_PERIOD);
-		}
-	}
-	console.log('PURCHASE TIMED OUT, CANCELLING \n');
-	await client.cancelOrder({
-		symbol: symbolName,
-  		orderId: buyOrderInfo.orderId,
-	});
-	return 'failure';
-}
-// tinh so coin co the mua va gia
-const calculateBuyQuantity = async(symbolName)=>{
-	console.log('CALCULATING BUY QUANTITY');
-
-	
-	console.log(accountInfo);
-	let USDTBalance = accountInfo.balances[INDEX_USDT].free;
-	if(USDTBalance > 11){
-		USDTBalance = 11;
-	}
-	console.log('USDT balance: ', USDTBalance);
-	let prices = await client.prices();
-	let currentPrice = prices[symbolName];
-	priceBuyMap.set(symbolName, currentPrice)
-	//currentPrice = currentPrice*1.02;
-	console.log(symbolName +' Price: ', currentPrice);     
-	
-	var stepSizeScale = 1/ stepSizeMap.get(symbolName);
-	var buyQuantity = (Math.floor(0.99*(USDTBalance / currentPrice)*stepSizeScale))/stepSizeScale;
-	
-	console.log("symbol :  " + symbolName + "  stepSizeScale " + stepSizeScale)
-	console.log('BuyQuantity: ', buyQuantity, '\n');
-	return { 
-		buyQuantity,
-		currentPrice
-	};
-}
-
-const buy = async(symbolName)=>{
-
-
-	let USDTBalance = accountInfo.balances[INDEX_USDT].free;
-	console.log(' BUYING USDTBalance  ' + USDTBalance);
-	if(USDTBalance > 11)
-	{
-		console.log('Do BUYING ');
-		let { buyQuantity, currentPrice} = await calculateBuyQuantity(symbolName);
-		
-		let USDTBalance = accountInfo.balances[INDEX_USDT].free;
-		if(USDTBalance > 11){
-			USDTBalance = 11;
-		}
-		
-		if(buyQuantity > 0.001)
-			{
-			await makeBuyOrder(symbolName,buyQuantity, currentPrice);
-			let buySuccess =  await waitBuyOrderCompetion(symbolName);
-			return buySuccess;
-		}else{
-			return 'success';
-		}
-	}
-}
-
-// Calculates how much profit a sale would incur
-const calculateProfit = async (symbolName) => {
-	console.log('CALCULATING PROFIT  ' + symbolName);
-	let buyingPrice = priceBuyMap.get(symbolName);// buyOrderInfo.price;
-	let prices = await client.prices({ symbol: symbolName });
-	let currentPrice = prices[symbolName];
-	let profit = ((currentPrice/buyingPrice) - 1) * 100;
-	// console.log('currentPrice [XRP]: ', currentPrice);
-	// console.log('buyingPrice: ', buyingPrice);
-	console.log('profit: ', profit, '\n');
-	return {
-		profit,
-		currentPrice
-	};
-}
-
-// Creates a sell order in the Binance API
-const makeSellOrder = async (symbolName,currentPrice, quantityValue) => {
-	
-
-	sellOrderInfo = await client.order({
-		symbol: symbolName,
-		side: 'SELL',
-		quantity: quantityValue,
-		price: currentPrice,
-	});
-	console.log('sellOrderInfo: ', sellOrderInfo, '\n');
-}
-
-// Waits till a sell order is completely filled or times out empty
-const waitSellOrderCompletion = async (symbolName) => {
-	console.log('WAITING SELL ORDER COMPLETION');
-	for(let i = 0; i < 5; i++){
-		sellOrderInfo = await client.getOrder({
-			symbol: symbolName,
-			orderId: sellOrderInfo.orderId,
-		});
-		// console.log('sellOrderInfo: ', sellOrderInfo);
-		if(sellOrderInfo.status === 'FILLED'){
-			console.log('SALE COMPLETE! \n');
-			return 'success';
-		}
-		await wait(ORDER_UPDATE_PERIOD);
-	}
-	if(sellOrderInfo.status === 'PARTIALLY_FILLED'){
-		console.log('SALE PARTIALLY FILLED, CONTINUING');
-		while(true){
-			sellOrderInfo = await client.getOrder({
-				symbol: symbolName,
-				orderId: sellOrderInfo.orderId,
-			});
-			// console.log('sellOrderInfo: ', sellOrderInfo);
-			if(sellOrderInfo.status === 'FILLED'){
-				console.log('SALE COMPLETE! \n');
-				return 'success';
-			}
-			await wait(ORDER_UPDATE_PERIOD);
-		}
-	}
-	console.log('SALE TIMED OUT, CANCELLING \n');
-
-	await client.cancelOrder({
-		symbol: symbolName,
-  	orderId: sellOrderInfo.orderId,
-	});
-	return 'failure';
-}
-
-// Selling mechanism, invokes the 3 functions above as needed
-const sell = async (symbolName) => {
-	console.log('SELLING');
-	let sellSuccess;
-
-	//while(true)
-	{
-		
-		let { profit, currentPrice } = await calculateProfit(symbolName);
-		//if(profit >= 0.175)
-		if(profit >= 1)
-		{
-			bot.sendMessage(chatId, " take profit " + coinName +"   " );
-			let prices = await client.prices({ symbol: symbolName });
-			let currentPrice = prices[symbolName];
-			let coinBalance = accountInfo.balances[symbolName].free;
-			sellQuantity = (Math.floor((coinBalance)*10000))/10000.0;
-			await makeSellOrder(symbolName,currentPrice,sellQuantity);
-			sellSuccess = await waitSellOrderCompletion(symbolName);
-		//	if(sellSuccess === 'failure') continue;
-			return;
-		}
-		// if(profit < -0.2){
-			// TODO: Implement stop logic
-		// }
-		await wait(PRICE_UPDATE_PERIOD);
-	}
-}
-
-const sellNow = async (symbolName) => {
-	console.log('SELLING');
-	let sellSuccess;
-
-	//console.log(accountInfo.balances)
-	while(true){
-		console.log('CALCULATING PROFIT');
-	
-		let prices = await client.prices({ symbol: symbolName });
-		let currentPrice = prices[symbolName];
-		let accountInfo = await client.accountInfo()
-		let sellQuantity
-		accountInfo.balances.forEach((balance) => {
-			if (balance.asset === symbolName.split("USDT")[0]) {
-				console.log("Balace " + balance.free)
-				sellQuantity = balance.free
-			}
-		})
-
-		var stepSizeScale = 1/ stepSizeMap.get(symbolName);
-	//var buyQuantity = (Math.floor(0.99*(USDTBalance / currentPrice)*stepSizeScale))/stepSizeScale;
-		sellQuantity = (Math.floor(0.99*(sellQuantity)*stepSizeScale))/stepSizeScale;
-		 
-		// sellQuantity = (Math.floor((coinBalance)*10000))/10000.0;
-	
-		await makeSellOrder(symbolName,currentPrice,sellQuantity);
-		sellSuccess = await waitSellOrderCompletion(symbolName);
-		if(sellSuccess === 'failure') continue;
-		return;
-	
-		await wait(PRICE_UPDATE_PERIOD);
-	}
-}
-
-const sellByEmaSignal = async()=>{
-
-	let sellSuccess;
-
-	//let BTCBalance = accountInfo.balances[INDEX_COINT].free;
-	prices = await client.prices();
-	for(var i = 0; i < accountInfo.balances.length;i++)
-	{
-		let symbolName= accountInfo.balances[i].asset;
-		let balance = accountInfo.balances[i].free;
-		let currentPrice = prices[symbolName+"USDT"];
-		let totalMoney = balance* currentPrice;
-		
-
-		if(totalMoney > 10)
-		{
-					await sell(symbolName+"USDT")
-					console.log("  xxx  "+ symbolName + "   : " +currentPrice +"   "+ balance+ "  " + totalMoney);
-					let	coinName= symbolName + "/USDT"
-					
-					try{
-			      	let macdData  = await macd(12,26,9,"close", "binance", coinName,"30m",true);
-			      	let m_Macd = macdData[macdData.length-1].MACD;
-
-			      	let m_Macd_signal = macdData[macdData.length-1].signal;
-			      	let macd_histogram_1 = macdData[macdData.length-1].histogram;
-					let macd_histogram_2 = macdData[macdData.length-2].histogram;
-			   		//console.log("MACD  1 "+macdData[macdData.length-1].MACD, " histogram:"  + macdData[macdData.length-1].histogram," sigal  " +macdData[macdData.length-1].signal);
-					//console.log("MACD  2 "+macdData[macdData.length-2].MACD, " histogram:"  + macdData[macdData.length-2].histogram," sigal  " +macdData[macdData.length-2].signal);
-					//console.log("MACD  3 "+macdData[macdData.length-3].MACD, " histogram:"  + macdData[macdData.length-3].histogram," sigal  " +macdData[macdData.length-3].signal);
-
-
-			        let ema10Data = await ema(10, "close", "binance", coinName, "30m", true)
-			        ema10_0 = ema10Data[ema10Data.length - 1];
-			        ema10_1 = ema10Data[ema10Data.length - 2];
-
-			      //  console.log("  -  " + coinName + "  " + ema10_1 );
-			     //	console.log("Ema 20 : " + ema10Data[ema10Data.length - 1] + "   ,  " + ema10Data[ema10Data.length - 2]);
-
-			        let ema20Data = await ema(20, "close", "binance", coinName, "30m", true)
-			        ema20_0 = ema20Data[ema20Data.length - 1];
-		     		ema20_1 = ema20Data[ema20Data.length - 2];
-
-			        let ema50Data = await ema(50, "close", "binance", coinName, "30m", true)
-			        ema50_0 = ema50Data[ema50Data.length - 1];
-					ema50_1 = ema50Data[ema50Data.length - 2];
-
-					if(((ema10_0 < ema20_0) || (ema10_0 < ema50_0) ||  (ema20_0 < ema50_0) ) 
-				//	 || (m_Macd < m_Macd_signal)
-				//	|| (macd_histogram_2 > macd_histogram_1)
-					 )
-					{
-								sellNow(symbolName+"USDT")
-								bot.sendMessage(chatId, " coin giam " + coinName +"   " + totalMoney);
-								console.log("coin name " + coinName );
-								log_str += " coin giam " + coinName +"   " + ema10 +"\n";
-					}
-
-				
-
-			   	 }
-			   	  catch (err)
-			   	   {
-      		 		 console.log(err + "  " + coinName  );
-      		 		 log_str += err + "  " + coinName + "\n";
-      		 		 continue;
-    				}
-    			
-		}
-	}
-}
-
 
 
 (async function main(){
 
-	var	exchangeInfo = await client.exchangeInfo();
-	accountInfo = await client.accountInfo();
-	var arayOrder = await client.tradesHistory({ symbol: 'BTTUSDT' })
-	console.log("trade history 0 :  "+ JSON.stringify(arayOrder))
-	console.log("trade history :  "+ JSON.stringify(arayOrder[arayOrder.length -1]))
-	// client.allBookTickers((error, ticker) => {
-	 	//console.log("bookTickers", client.allBookTickers()["HOTUSDT"]);
-	//   });
-//	console.log("Price : " +JSON.stringify( exchangeInfo.symbols[0].symbol))//filters[2]))
-	exchangeInfo.symbols.forEach(element =>
-		{ 
-		//	console.log(element.symbol)
-			stepSizeMap.set(element.symbol,element.filters[2] .stepSize)
-		});
-	//console.log(stepSizeMap);
-	// let prices = await client.prices({ symbol: "XRPUSDT" });
-	// let currentPrice = prices["XRPUSDT"];
-//	console.log("Current xrp price : " + exchangeInfo.symbols[110])
-	// let buySuccess = null;
-	//  accountInfo = await client.accountInfo();
-	// //try{
-	// //	await sync();
-		// try {
-		// 	symbolName = "DATAUSDT"
-		// 	//console.log("SEll symbol Name :"+ symbolName)
-		// 	// buySuccess = await buy(symbolName)
-		// 	sellSuccess = await sellNow(symbolName);	
-		// } catch (e) {
-		// 	console.error('ERROR IN sell(): ', e);
-		// 	console.log('RESUMING OPERATIONS\n');
-		// //	continue;
-		// }
+	let buySuccess = null;
 
-	// //	let accountInfo = await client.accountInfo();
-	// 	//console.log(accountInfo);
-	// }catch(e){
-	// 	console.log('Erorr DURING INIT :', e);
-	// 	process.exit(-1);
-	// }
-	
 	//	await updateEMA();
-	while(1){
-			accountInfo = await client.accountInfo();
+	bot.sendMessage(chatId," =============Start 1 vong requets ======" );
+	while(true)
+	{
 			log_str = "";
-			//  try{
-				
-			// 	await sell();
-				
-			//  }catch(e){
-			// 	console.log("Error for sell", e);
-			// 	process.exit(-1);
-			//  }
+		//	bot.sendMessage(chatId," =============Start 1 vong requets ======" );
+			 try{
+
+			//	await sell();
+
+			 }catch(e){
+				console.log("Error for sell", e);
+				process.exit(-1);
+			 }
+
 			try{
-				await updateEMA();
+
+			    await updatePrice("4h");
+//			     await updateEMA("15m");
+//				await updateEMA("30m");
+//				await updateEMA("1h");
 				await sync();
 			}catch(e){
 				console.log('Erorr Update ema', e);
 				process.exit(-1);
 			}
-			 try{
-				
-				await sellByEmaSignal();
-				
-			 }catch(e){
-				console.log("Error for sell", e);
-				process.exit(-1);
-			 }
-			
 
-		
-		await wait(1000);
-		
+			// console.log("ema10 " + ema10 + "ema20 " + ema20 + "ema50 " + ema50);
+			// // console.log("ema20 " + ema20);
+			// // console.log("ema50 " + ema50);
+
+			// //buySuccess = await buy();
+			// if(ema10 > ema20 && ema10 > ema50
+			// 	&& ema20 > ema50)
+			// {
+			// 	try{
+
+			// 	//	buySuccess = await buy();
+			// 	} catch (e) {
+			// 		console.log('ERROR IN buy(): ', e);
+			// 		console.log('RESUMING OPERATIONS\n');
+			// 		continue;
+			// 	}
+			// 	// buy
+			// }else{
+			// 	console.log("Doi mua");
+			// }
+			// if(buySuccess === 'failure') continue;
+		//	bot.sendMessage(chatId," =============Ket thuc 1 vong requets ======" );
+		await wait(10000);
 	}
 
 })();
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 

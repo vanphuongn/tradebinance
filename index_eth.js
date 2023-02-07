@@ -471,8 +471,9 @@ const updatePriceForSell =async (coinName2,timeRequest, so_nen_check_giao_cat)=>
 
                   //   var isEma10NhoHon = checkEma5mLonHonForBuy(coinName2)
 					if((max / lastPrice) < 1.1 && (intersect_macd_index_array[i]  < 30)
-				//	&& (ema10[ema10.length-1] < ema20[ema20.length-1])
+					&& (ema10[ema10.length-1] < ema20[ema20.length-1])
 				//    && (isEma10NhoHon == true)
+				 && (macdData2[(macdData2.length -1)].MACD > 0)
 					&& (macdData2[(macdData2.length -1)].MACD < macdData2[(macdData2.length -1)].signal)
 					)
 					{
@@ -618,7 +619,7 @@ const updatePriceForBuy =async (coinName2,timeRequest)=>{
 									var xxx = ema10[ema10.length-1] -  ema20[ema20.length-1]
 									console.log( "xxx    " + xxx)
 									if((ema10[ema10.length-1] > ema20[ema20.length-1])
-									//&& (ema10[ema10.length-2] < ema20[ema20.length-2])
+									&& (ema10[ema10.length-2] < ema20[ema20.length-2])
 									)
 									{
 										bot_warning.sendMessage(chatId,timeRequest +"   Canh bao: Can Than Lo  " + coinName2 + "   ema 10 " + ema10[ema10.length-1] + "  ema20  " + ema20[ema20.length-1]);
@@ -692,8 +693,9 @@ const updatePriceForBuy =async (coinName2,timeRequest)=>{
 
                         //    var isEma10LonHon = checkEma5mLonHonForBuy(coinName2)
                             if((lastPrice / min) < 1.15 && (intersect_macd_index_array[i]  < 30)
-                         	//&& (ema10[ema10.length-1] > ema20[ema20.length-1])
+                         //	&& (ema10[ema10.length-1] > ema20[ema20.length-1])
                          //	&& (isEma10LonHon == true)
+                         && (macdData2[(macdData2.length -1)].MACD  < 0)
 								&&  (macdData2[(macdData2.length -1)].MACD > macdData2[(macdData2.length -1)].signal)
                             )
                             {
@@ -798,15 +800,15 @@ const updatePrice = async(timeRequest )=>{
                // console.log("test5m " +coinName2)
 			   				  // check for buy
 			   		//var test3m =   await updatePriceForBuy(coinName2, "3m")
-                    var test5m =   await updatePriceForBuy(coinName2, "5m")
-                      var test15m =  await  updatePriceForBuy(coinName2, "15m")
+                  //  var test5m =   await updatePriceForBuy(coinName2, "5m")
+                 //     var test15m =  await  updatePriceForBuy(coinName2, "15m")
                       var test30m =  await  updatePriceForBuy(coinName2, "30m")
                       var test1h =  await  updatePriceForBuy(coinName2, "1h")
 
                       if((test30m.hasPhanKy == true)||(test1h.hasPhanKy == true)
                       ||((test15m.hasPhanKy == true)))
                       {
-                         if((test5m.hasPhanKy == true))
+                      //   if((test5m.hasPhanKy == true))
                          {
                              console.log("test5m phan ky buy " +test5m.hasPhanKy+ "   logData2  : "+ test5m.logStr)
                             var logData = test5m.logStr + test15m.logStr + test30m.logStr + test1h.logStr;
@@ -828,15 +830,15 @@ const updatePrice = async(timeRequest )=>{
 
 					  // check for shell
 				//	  var test3mShell =  await updatePriceForSell(coinName2, "3m", 30)
-					  var test5mShell =  await updatePriceForSell(coinName2, "5m", 30)
-                      var test15mShell =  await   updatePriceForSell(coinName2, "15m",30)
+					//  var test5mShell =  await updatePriceForSell(coinName2, "5m", 30)
+                    //  var test15mShell =  await   updatePriceForSell(coinName2, "15m",30)
                       var test30mShell = await   updatePriceForSell(coinName2, "30m",30)
                       var test1hShell =  await  updatePriceForSell(coinName2, "1h",30)
 				//	  console.log(coinName2 +"    test5m " +test5mShell.hasPhanKy+ "   logData2  : "+ test5mShell.logStr)
                       if((test30mShell.hasPhanKy == true)||(test1hShell.hasPhanKy == true)
                       || ((test15mShell.hasPhanKy == true)))
                       {
-                         if((test5mShell.hasPhanKy == true))
+                        // if((test5mShell.hasPhanKy == true))
                          {
 							console.log("test5m2 " +test5mShell.hasPhanKy+ "   logData2  : "+ test5mShell.logStr)
                             var logData = test5mShell.logStr + test15mShell.logStr + test30mShell.logStr + test1hShell.logStr;
