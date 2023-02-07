@@ -173,8 +173,11 @@ const updatePriceForSell =async (coinName2,timeRequest, so_nen_check_giao_cat)=>
 				prices.push(Number(priceDatas[i].close))
 			}
 
-            lastestCandleIsPinbarDown = checkPinbarDown(priceDatas[priceDatas.length-1].open, priceDatas[priceDatas.length-1].high,
-                priceDatas[priceDatas.length-1].low,priceDatas[priceDatas.length-1].close)
+//            lastestCandleIsPinbarDown = checkPinbarDown(priceDatas[priceDatas.length-1].open, priceDatas[priceDatas.length-1].high,
+//                priceDatas[priceDatas.length-1].low,priceDatas[priceDatas.length-1].close)
+
+   lastestCandleIsPinbarDown = checkPinbarDown(priceDatas[priceDatas.length-2].open, priceDatas[priceDatas.length-2].high,
+                priceDatas[priceDatas.length-2].low,priceDatas[priceDatas.length-2].close)
 
 			for(var i = 30; i >0; i--)
 			{
@@ -291,8 +294,11 @@ const updatePriceForBuy =async (coinName2,timeRequest)=>{
                         prices.push(Number(priceDatas[i].close))
                     }
                        console.log("COiname " + coinName2 + "  timerequest " + timeRequest)
-                    lastestCandleIsPinbarUp = checkPinbarUp(priceDatas[priceDatas.length-1].open, priceDatas[priceDatas.length-1].high,
-                        priceDatas[priceDatas.length-1].low,priceDatas[priceDatas.length-1].close)
+//                    lastestCandleIsPinbarUp = checkPinbarUp(priceDatas[priceDatas.length-1].open, priceDatas[priceDatas.length-1].high,
+//                        priceDatas[priceDatas.length-1].low,priceDatas[priceDatas.length-1].close)
+
+                     lastestCandleIsPinbarUp = checkPinbarUp(priceDatas[priceDatas.length-2].open, priceDatas[priceDatas.length-2].high,
+                        priceDatas[priceDatas.length-2].low,priceDatas[priceDatas.length-2].close)
 
                     for(var i = 30; i >0; i--)
                     {
@@ -507,7 +513,7 @@ const updatePrice = async(timeRequest )=>{
                       var test30m =  await  updatePriceForBuy(coinName2, "30m")
                       var test1h =  await  updatePriceForBuy(coinName2, "1h")
 
-                      if((test30m.hasPhanKy == true)||(test1h.hasPhanKy == true) ||(test15m.hasPhanKy == true)))
+                      if((test30m.hasPhanKy == true)||(test1h.hasPhanKy == true) ||(test15m.hasPhanKy == true))
                       {
                        //  if((test5m.hasPhanKy == true)||(test15m.hasPhanKy == true))
                          {
