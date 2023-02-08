@@ -123,7 +123,7 @@ var coinDivergenceList = []
 so_nen_check_giao_cat = 20
 currentSymbols = []
 
-const checkPinbarUp = function(open, high, low, close, coinName = "", timeRequest= "15m"){
+const checkPinbarUp = function(open, high, low, close, coinName = "", timeRequest){
     var long = high - low
     var belowTail =  0
     var result = false
@@ -133,10 +133,10 @@ const checkPinbarUp = function(open, high, low, close, coinName = "", timeReques
         belowTail = open - low
     }
 
-     if((belowTail) > (0.65 * long))
+     if(((belowTail) > (0.7 * long)) || ((belowTail) > (0.5 * long)) && (close == high)) 
      {
-        console.log(coinName+"  timeRequest  "+ timeRequest  + "   belowTail / long " + (belowTail/long) + "open : " + open + " close " + close + " low "+ low + "  high "+ high)
-        bot_check_log.sendMessage(chatId, coinName +"  timeRequest  "+ timeRequest + "   belowTail / long  " + (belowTail/long) + "open : " + open + " close " + close + " low "+ low + "  high "+ high)
+        console.log(coinName+"  timeRequest  "+ timeRequest  + "  pinbar Tang " + (belowTail/long) + "open : " + open + " close " + close + " low "+ low + "  high "+ high)
+        bot_check_log.sendMessage(chatId, coinName +"  timeRequest  "+ timeRequest + "  pinbar Tang   " + (belowTail/long) + "open : " + open + " close " + close + " low "+ low + "  high "+ high)
         result = true
         //return true;
      }else {
@@ -145,7 +145,7 @@ const checkPinbarUp = function(open, high, low, close, coinName = "", timeReques
 
      return {result}
 }
-const checkPinbarDown = function(open, high, low, close,coinName = "", timeRequest= "15m"){
+const checkPinbarDown = function(open, high, low, close,coinName = "", timeRequest){
     var long = high - low
     var belowTail =  0
  var result = false
@@ -155,10 +155,10 @@ const checkPinbarDown = function(open, high, low, close,coinName = "", timeReque
         aboveTail = high - close
     }
 
-     if((aboveTail) > (0.65 * long))
+     if(((aboveTail) > (0.7 * long)) || ((aboveTail) > (0.5 * long)) && (close == low))
      {
-      console.log(coinName +"  timeRequest  "+ timeRequest + "   aboveTail / long  " + (aboveTail/long) + "open : " + open + " close " + close + " low "+ low + "  high "+ high)
-        bot_check_log.sendMessage(chatId, coinName +"  timeRequest  "+ timeRequest + "   aboveTail / long  " + (belowTail/long) + "open : " + open + " close " + close + " low "+ low + "  high "+ high)
+      console.log(coinName +"  timeRequest  "+ timeRequest + "  Pinbar giam  " + (aboveTail/long) + "open : " + open + " close " + close + " low "+ low + "  high "+ high)
+        bot_check_log.sendMessage(chatId, coinName +"  timeRequest  "+ timeRequest + "    Pinbar giam" + (belowTail/long) + "open : " + open + " close " + close + " low "+ low + "  high "+ high)
         result = true
       //  return true;
      }else {
@@ -167,19 +167,32 @@ const checkPinbarDown = function(open, high, low, close,coinName = "", timeReque
      }
 }
 
-const checkPinbarForBuy = async(coinName2, timeRequest = "15m")=>{
+const checkPinbarForBuy = async(coinName2, timeRequest )=>{
 	try{
 
 		//	let macdData  = await macd(12,26,9,"close", "binance", "BNB/USDT",timeRequest,true);
-			let price15mDatas = await client.candles({ symbol: coinName2, limit:10,interval:timeRequest })
+			let price15mDatas = await client.candles({ symbol: coinName2, limit:400,interval:timeRequest })
 			var lastestCandleIsPinbarUp15m = checkPinbarUp(price15mDatas[price15mDatas.length-1].open, price15mDatas[price15mDatas.length-1].high,
-                price15mDatas[price15mDatas.length-1].low,price15mDatas[price15mDatas.length-1].close,coinName2,"15m")
+                price15mDatas[price15mDatas.length-1].low,price15mDatas[price15mDatas.length-1].close,coinName2,timeRequest)
 
           var  lastestCandleIsPinbarUp15m2 = checkPinbarUp(price15mDatas[price15mDatas.length-2].open, price15mDatas[price15mDatas.length-2].high,
-                price15mDatas[price15mDatas.length-2].low,price15mDatas[price15mDatas.length-2].close,coinName2,"15m")
+                price15mDatas[price15mDatas.length-2].low,price15mDatas[price15mDatas.length-2].close,coinName2,timeRequest)
 
+          var prices = []
+       
+                
+          for(var i =0; i < priceDatas.length; i++)
+          {
+            // console.log(coinName2 +"    "+i + "    priceDatas " + priceDatas[i].close)
+            prices.push(Number(priceDatas[i].close))
+          }
+       //   console.log(coinName2 +"    ema10 "+ema10 + "    priceDatas " + priceDatas[priceDatas.length-2].close)
+          var ema10 = EMA.calculate({period : 10, values : prices})
             var result  = false
-            if((lastestCandleIsPinbarUp15m.result == true) ||(lastestCandleIsPinbarUp15m2.result == true)
+            if(
+              //(lastestCandleIsPinbarUp15m.result == true) ||
+            (price15mDatas[price15mDatas.length-2].close < ema10) &&
+            (lastestCandleIsPinbarUp15m2.result == true )
             ){
             result = true;
               //  return true;
@@ -198,7 +211,7 @@ const checkPinbarForBuy = async(coinName2, timeRequest = "15m")=>{
 	}
 }
 
-const checkPinbarForShell = async(coinName2, timeRequest = "15m")=>{
+const checkPinbarForShell = async(coinName2, timeRequest )=>{
 	try{
 
 		//	let macdData  = await macd(12,26,9,"close", "binance", "BNB/USDT",timeRequest,true);
@@ -206,15 +219,30 @@ const checkPinbarForShell = async(coinName2, timeRequest = "15m")=>{
 
 //			var lastestCandleIsPinbarDown15m = false
 //			var lastestCandleIsPinbarDown15m2 = false
-			var lastestCandleIsPinbarDown15m = checkPinbarDown(price15mDatas[price15mDatas.length-1].open, price15mDatas[price15mDatas.length-1].high,
-                price15mDatas[price15mDatas.length-1].low,price15mDatas[price15mDatas.length-1].close, coinName, "15m")
+			  var lastestCandleIsPinbarDown15m = checkPinbarDown(price15mDatas[price15mDatas.length-1].open, price15mDatas[price15mDatas.length-1].high,
+                price15mDatas[price15mDatas.length-1].low,price15mDatas[price15mDatas.length-1].close, coinName, timeRequest)
 
-         var   lastestCandleIsPinbarDown15m2 = checkPinbarDown(price15mDatas[price15mDatas.length-2].open, price15mDatas[price15mDatas.length-2].high,
-                price15mDatas[price15mDatas.length-2].low,price15mDatas[price15mDatas.length-2].close, coinName, "15m")
+        var   lastestCandleIsPinbarDown15m2 = checkPinbarDown(price15mDatas[price15mDatas.length-2].open, price15mDatas[price15mDatas.length-2].high,
+                price15mDatas[price15mDatas.length-2].low,price15mDatas[price15mDatas.length-2].close, coinName, timeRequest)
+        
+  
+                var prices = []
+       
+                
+                for(var i =0; i < priceDatas.length; i++)
+                {
+                 // console.log(coinName2 +"    "+i + "    priceDatas " + priceDatas[i].close)
+                  prices.push(Number(priceDatas[i].close))
+                }
+
+                var ema10 = EMA.calculate({period : 10, values : prices})
 
 
             var result = false
-            if((lastestCandleIsPinbarDown15m.result == true) ||(lastestCandleIsPinbarDown15m2.result == true)
+            if(
+           //   (lastestCandleIsPinbarDown15m.result == true) ||
+           (price15mDatas[price15mDatas.length-2].close > ema10) &&
+            (lastestCandleIsPinbarDown15m2.result == true )
 
             ){
                 result = true;
@@ -245,6 +273,7 @@ const updatePriceForSell =async (coinName2,timeRequest, so_nen_check_giao_cat)=>
 			var prices = []
 			var last50Prices = []
 			var lastestCandleIsPinbarDown = false
+
 			for(var i =0; i < priceDatas.length; i++)
 			{
 		   // console.log(coinName2 +"    "+i + "    priceDatas " + priceDatas[i].close)
@@ -322,7 +351,7 @@ const updatePriceForSell =async (coinName2,timeRequest, so_nen_check_giao_cat)=>
 					if((max / lastPrice) < 1.05 && (intersect_macd_index_array[i]  < 30)
 				//	&& (ema10[ema10.length-1] < ema20[ema20.length-1])
                  //   && (lastestCandleIsPinbarDown == true)
-					&& (macdData2[(macdData2.length -1)].MACD < macdData2[(macdData2.length -1)].signal)
+					//&& (macdData2[(macdData2.length -1)].MACD > macdData2[(macdData2.length -1)].signal)
 					)
 					{
 						total_coin_phanky+=1
@@ -497,7 +526,7 @@ const updatePriceForBuy =async (coinName2,timeRequest)=>{
                             if((lastPrice / min) < 1.05 && (intersect_macd_index_array[i]  < 30)
                          //	&& (ema10[ema10.length-1] > ema20[ema20.length-1])
                              //   && ((lastestCandleIsPinbarUp == true) || (lastestCandleIsPinbarUp2 == true))
-								&&  (macdData2[(macdData2.length -1)].MACD > macdData2[(macdData2.length -1)].signal)
+								          //    &&  (macdData2[(macdData2.length -1)].MACD < macdData2[(macdData2.length -1)].signal)
                             )
                             {
                                total_coin_phanky+=1
