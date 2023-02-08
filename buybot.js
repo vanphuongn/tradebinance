@@ -133,7 +133,7 @@ const checkPinbarUp = function(open, high, low, close, coinName = "", timeReques
         belowTail = open - low
     }
 
-     if(((belowTail) > (0.7 * long)) || ((belowTail) > (0.5 * long)) && (close == high)) 
+     if(((belowTail) > (0.65 * long)) || ((belowTail) > (0.5 * long)) && (close == high)) 
      {
         console.log(coinName+"  timeRequest  "+ timeRequest  + "  pinbar Tang " + (belowTail/long) + "open : " + open + " close " + close + " low "+ low + "  high "+ high)
         bot_check_log.sendMessage(chatId, coinName +"  timeRequest  "+ timeRequest + "  pinbar Tang   " + (belowTail/long) + "open : " + open + " close " + close + " low "+ low + "  high "+ high)
@@ -155,7 +155,7 @@ const checkPinbarDown = function(open, high, low, close,coinName = "", timeReque
         aboveTail = high - close
     }
 
-     if(((aboveTail) > (0.7 * long)) || ((aboveTail) > (0.5 * long)) && (close == low))
+     if(((aboveTail) > (0.65 * long)) || ((aboveTail) > (0.5 * long)) && (close == low))
      {
       console.log(coinName +"  timeRequest  "+ timeRequest + "  Pinbar giam  " + (aboveTail/long) + "open : " + open + " close " + close + " low "+ low + "  high "+ high)
         bot_check_log.sendMessage(chatId, coinName +"  timeRequest  "+ timeRequest + "    Pinbar giam" + (belowTail/long) + "open : " + open + " close " + close + " low "+ low + "  high "+ high)
