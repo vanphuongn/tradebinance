@@ -10,6 +10,7 @@
   "license": "ISC",
   "dependencies": {
     "binance-api-node": "^0.11.28",
+    "draw-candlestick": "^2.0.3",
     "express": "^4.17.2",
     "kdj": "^1.0.5",
     "node-telegram-bot-api": "^0.56.0",

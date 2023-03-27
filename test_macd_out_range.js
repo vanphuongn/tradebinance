@@ -132,145 +132,242 @@ const { json } = require('express');
 //console.log(jsonData);
 
 
+const checkEma5mCatXuongForSell = async(coinName2)=>{
+	try{
+
+		//	let macdData  = await macd(12,26,9,"close", "binance", "BNB/USDT",timeRequest,true);
+			let priceDatas = await client.candles({ symbol: coinName2, limit:1000,interval:"5m" })
+			var intersect_macd_index_array = []
+			var prices = []
+			var last50Prices = []
+			
+
+			for(var i =0; i < priceDatas.length; i++)
+			{
+		   // console.log(coinName2 +"    "+i + "    priceDatas " + priceDatas[i].close)
+				prices.push(Number(priceDatas[i].close))
+			}
+
+			for(var i = 30; i >0; i--)
+			{
+		//	    console.log(i + "    priceDatas " + priceDatas[i].close)
+				last50Prices.push(Number(priceDatas[priceDatas.length-i].high))
+
+			}
+		
+
+			var min = Math.min( ...last50Prices )
+			var max = Math.max( ...last50Prices )
+
+			var macdInput = {
+				values            : prices,
+				fastPeriod        : 12,
+				slowPeriod        : 26,
+				signalPeriod      : 9 ,
+				SimpleMAOscillator: false,
+				SimpleMASignal    : false
+			}
+
+//                   var result =  MACD.calculate(macdInput);
+	   //   console.log("macdInput :"+JSON.stringify(macdInput))
+		   var macdData2 = MACD.calculate(macdInput)
+		   var ema10 = EMA.calculate({period : 10, values : prices})
+		   var ema20 = EMA.calculate({period : 20, values : prices})
+		//	console.log("Ema10 " + ema10)
+		   var hasGiaoCatEma5mForShell = false;
+//        console.log("Ema10 " + ema10[ema10.length-1]  + "   " + ema20[ema20.length-1]
+//        +  "    Ema10-2 " + ema10[ema10.length-2]  + "   " + ema20[ema20.length-2]
+//         )
+
+		   if((ema10[ema10.length-1] < ema20[ema20.length-1])
+		   &&( (ema10[ema10.length-2] > ema20[ema20.length-2]) || (ema10[ema10.length-3] > ema20[ema20.length-3]))
+		   )
+		   {
+		      console.log(coinName2+ "Giao cat xuong")
+				hasGiaoCatEma5mForShell = true;
+	   //		await binance.futuresCancelAll(coinName2) 
+		   }
+	 
+			return {hasGiaoCatEma5mForShell};
+	}
+		catch (err)
+		{
+	//	 console.log(err + "  " + coinName2  );
+	//	 log_str += err + "  " + coinName2 + "\n";
+		
+	}
+}
+
+
+const checkEma5mCatLenForBuy = async(coinName2)=>{
+	try{
+
+		//	let macdData  = await macd(12,26,9,"close", "binance", "BNB/USDT",timeRequest,true);
+			let priceDatas = await client.candles({ symbol: coinName2, limit:1000,interval:"5m" })
+			var intersect_macd_index_array = []
+			var prices = []
+			var last50Prices = []
+			
+
+			for(var i =0; i < priceDatas.length; i++)
+			{
+		   // console.log(coinName2 +"    "+i + "    priceDatas " + priceDatas[i].close)
+				prices.push(Number(priceDatas[i].close))
+			}
+
+			for(var i = 30; i >0; i--)
+			{
+		//	    console.log(i + "    priceDatas " + priceDatas[i].close)
+				last50Prices.push(Number(priceDatas[priceDatas.length-i].high))
+
+			}
+		
+
+			var min = Math.min( ...last50Prices )
+			var max = Math.max( ...last50Prices )
+
+			var macdInput = {
+				values            : prices,
+				fastPeriod        : 12,
+				slowPeriod        : 26,
+				signalPeriod      : 9 ,
+				SimpleMAOscillator: false,
+				SimpleMASignal    : false
+			}
+
+//                   var result =  MACD.calculate(macdInput);
+	   //   console.log("macdInput :"+JSON.stringify(macdInput))
+		   var macdData2 = MACD.calculate(macdInput)
+		   var ema10 = EMA.calculate({period : 10, values : prices})
+		   var ema20 = EMA.calculate({period : 20, values : prices})
+			
+		   var hasGiaoCatEma5mForBuy = false;
+		   if(
+		   (ema10[ema10.length-1] > ema20[ema20.length-1])
+		   &&((ema10[ema10.length-2] < ema20[ema20.length-2])||(ema10[ema10.length-3] < ema20[ema20.length-3]))
+		   )
+		   {
+				hasGiaoCatEma5mForBuy = true;
+				console.log( coinName2 + "Cat tu duoi len ")
+	   //		await binance.futuresCancelAll(coinName2) 
+		   }
+	 
+			return {hasGiaoCatEma5mForBuy};
+	}
+		catch (err)
+		{
+	//	 console.log(err + "  " + coinName2  );
+	//	 log_str += err + "  " + coinName2 + "\n";
+		
+	}
+}
 
 const updatePriceForSell = async (coinName2,timeRequest, range, super_range)=>{
   try{
 
-   //         console.log("timeRequest  " + timeRequest + "  , coinName :  " +coinName2 )
-          //	let macdData  = await macd(12,26,9,"close", "binance", "BNB/USDT",timeRequest,true);
+      let priceDatas =   await client.candles({ symbol: coinName2, limit:1000,interval:timeRequest })
 
-             let priceDatas =   await client.candles({ symbol: coinName2, limit:1000,interval:timeRequest })
-
-              var intersect_macd_index_array = []
-              var prices = []
-              var last50Prices = []
-              var lastestCandleIsPinbarUp = false
-              var lastestCandleIsPinbarUp2 = false
-              for(var i =0; i < priceDatas.length; i++)
-              {
-              //   console.log(coinName2+ "   "+i + "    priceDatas " + priceDatas[i].close)
-                  prices.push(Number(priceDatas[i].close))
-              }
-              //   console.log("COiname " + coinName2 + "  timerequest " + timeRequest)
+      var intersect_macd_index_array = []
+      var prices = []
+      var last50Prices = []
+      var lastestCandleIsPinbarUp = false
+      var lastestCandleIsPinbarUp2 = false
+      for(var i =0; i < priceDatas.length; i++)
+      {
+      //   console.log(coinName2+ "   "+i + "    priceDatas " + priceDatas[i].close)
+          prices.push(Number(priceDatas[i].close))
+      }
+      //   console.log("COiname " + coinName2 + "  timerequest " + timeRequest)
 
 
-              for(var i = 30; i >0; i--)
-              {
-          //	    console.log(i + "    priceDatas " + priceDatas[i].close)
-                  last50Prices.push(Number(priceDatas[priceDatas.length-i].low))
-              }
-              var min = Math.min( ...last50Prices )
-  //	var min = Math.min( ...last50Prices )
-              var max = Math.max( ...last50Prices )
+      for(var i = 30; i >0; i--)
+      {
+  //	    console.log(i + "    priceDatas " + priceDatas[i].close)
+          last50Prices.push(Number(priceDatas[priceDatas.length-i].low))
+      }
+      var min = Math.min( ...last50Prices )
+    //	var min = Math.min( ...last50Prices )
+      var max = Math.max( ...last50Prices )
 
-              var macdInput = {
-                values            : prices,
-                fastPeriod        : 12,
-                slowPeriod        : 26,
-                signalPeriod      : 9 ,
-                SimpleMAOscillator: false,
-                SimpleMASignal    : false
-              }
+      var macdInput = {
+        values            : prices,
+        fastPeriod        : 12,
+        slowPeriod        : 26,
+        signalPeriod      : 9 ,
+        SimpleMAOscillator: false,
+        SimpleMASignal    : false
+      }
 
 //                   var result =  MACD.calculate(macdInput);
-         //   console.log("macdInput :"+JSON.stringify(macdInput))
-             var macdData2 = MACD.calculate(macdInput)
-             var ema10 = EMA.calculate({period : 10, values : prices})
-             var ema20 = EMA.calculate({period : 20, values : prices})
+  //   console.log("macdInput :"+JSON.stringify(macdInput))
+      var macdData2 = MACD.calculate(macdInput)
+      var ema10 = EMA.calculate({period : 10, values : prices})
+      var ema20 = EMA.calculate({period : 20, values : prices})
+      var macd_sum = 0;
 
-             for(var i = 0; i < macdData2.length; i++){
-              macd_sum += macdData2[i].MACD
-            }
-            var macd_avg = macd_sum/macdData2.length
-          //  range = Math.abs(macd_avg*5)
-          //  super_range = Math.abs(macd_avg*8)
-         //  console.log("macd :"+JSON.stringify(macdData2))
-           // console.log("macd length:"+macdData2.length)
+   
+    for(var i = 0;  i < macdData2.length;i++)
+    {
+        if( (macdData2[(macdData2.length -1)-i].MACD < macdData2[(macdData2.length -1)-i].signal)
+        && (macdData2[(macdData2.length -1)-(i+1)].MACD > macdData2[(macdData2.length -1)-(i+1)].signal)
+        )
+        {
+      //       console.log(i  +"  macdData  " + macdData2[i].MACD)
+            intersect_macd_index_array.push(i)
+        }
+    }
 
-           for(var i = 0;  i < macdData2.length;i++)
-           {
-             if( (macdData2[(macdData2.length -1)-i].MACD < macdData2[(macdData2.length -1)-i].signal)
-             && (macdData2[(macdData2.length -1)-(i+1)].MACD > macdData2[(macdData2.length -1)-(i+1)].signal)
-             )
-             {
-          //           console.log(i  +"  macdData  " + macdData2[i].MACD)
-               intersect_macd_index_array.push(i)
-             }
-            }
-           //   console.log("  intersect_macd_index_array length  " + intersect_macd_index_array.length)
+        var hasPhanKy = false;
+        var logStr = "";
+        // console.log("CHeck phan ky" + coinName2)
+          //  console.log("intersect_macd_index_array "+ intersect_macd_index_array.length)
+        var tyle = (Math.abs(macdData2[[macdData2.length - 1] - intersect_macd_index_array[1]].MACD)/ priceDatas[[priceDatas.length - 1] - intersect_macd_index_array[1]].close)  * 100
+        var tyle0 = (Math.abs(macdData2[[macdData2.length - 1] - intersect_macd_index_array[0]].MACD)/ priceDatas[[priceDatas.length - 1] - intersect_macd_index_array[0]].close)  * 100
+        var macd0 = macdData2[[macdData2.length - 1] -intersect_macd_index_array[0]].MACD 
+        var macd1 = macdData2[[macdData2.length - 1] - intersect_macd_index_array[1]].MACD
+      //  console.log("coinName " + coinName2 + "  tyle_1:  " + tyle + "  tyle_0 : " + tyle0  + "  macd_0:  "+macd0 + "  macd_1 : "+ macd1+    "  time " + timeRequest)
+      
+        if( (macdData2[[macdData2.length - 1] -intersect_macd_index_array[0]].MACD < macdData2[[macdData2.length - 1] - intersect_macd_index_array[1]].MACD)
+        &&  (macdData2[[macdData2.length - 1] -intersect_macd_index_array[0]].MACD > 0)
+        && (macdData2[(macdData2.length -1)].MACD < macdData2[(macdData2.length -1)].signal)
+            && (priceDatas[[priceDatas.length - 1] - intersect_macd_index_array[0]].close > priceDatas[[priceDatas.length - 1] - intersect_macd_index_array[1]].close)
+            && (((Math.abs(macdData2[[macdData2.length - 1] - intersect_macd_index_array[1]].MACD)/ priceDatas[[priceDatas.length - 1] - intersect_macd_index_array[1]].close) *100)> range )
+            )
+        {
+        
+            //   logStr += total_coin_phanky+ "  "+  timeRequest +", phan ki tang " + coinName2 +"  "+ intersect_macd_index_array[0]+"   "  +"\n"                          
+              logStr =  timeRequest +", Xem mua Phan ky " + coinName2 + "  tyle_1:  " + tyle + "  tyle_0 : " + tyle0  + "  macd_0:  "+macd0 + "  macd_1 : "+ macd1 + "   range  "+ range + "\n"
+              hasPhanKy = true
+        }
 
-              var hasPhanKy = false;
-              var logStr = "";
-             // console.log("CHeck phan ky" + coinName2)
-               //  console.log("intersect_macd_index_array "+ intersect_macd_index_array.length)
-               var tyle = (Math.abs(macdData2[[macdData2.length - 1] - intersect_macd_index_array[1]].MACD)/ priceDatas[[priceDatas.length - 1] - intersect_macd_index_array[1]].close)  * 100
-               var tyle0 = (Math.abs(macdData2[[macdData2.length - 1] - intersect_macd_index_array[0]].MACD)/ priceDatas[[priceDatas.length - 1] - intersect_macd_index_array[0]].close)  * 100
-               var macd0 = macdData2[[macdData2.length - 1] -intersect_macd_index_array[0]].MACD 
-               var macd1 = macdData2[[macdData2.length - 1] - intersect_macd_index_array[1]].MACD
-             //  console.log("coinName " + coinName2 + "  tyle_1:  " + tyle + "  tyle_0 : " + tyle0  + "  macd_0:  "+macd0 + "  macd_1 : "+ macd1+    "  time " + timeRequest)
-             
-
-              if( (macdData2[[macdData2.length - 1] -intersect_macd_index_array[0]].MACD < macdData2[[macdData2.length - 1] - intersect_macd_index_array[1]].MACD)
-              &&  (macdData2[[macdData2.length - 1] -intersect_macd_index_array[0]].MACD > 0)
-              && (macdData2[(macdData2.length -1)].MACD < macdData2[(macdData2.length -1)].signal)
-                  && (priceDatas[[priceDatas.length - 1] - intersect_macd_index_array[0]].close > priceDatas[[priceDatas.length - 1] - intersect_macd_index_array[1]].close)
-                  && (((Math.abs(macdData2[[macdData2.length - 1] - intersect_macd_index_array[1]].MACD)/ priceDatas[[priceDatas.length - 1] - intersect_macd_index_array[1]].close) *100)> range )
-                  )
-              {
-                  var time = timeConverter(priceDatas[[priceDatas.length - 1] - intersect_macd_index_array[0]].closeTime)
-                  var oldTime = timeConverter(priceDatas[[priceDatas.length - 1] - intersect_macd_index_array[1]].closeTime)
-             //     var lastPrice = priceDatas[priceDatas.length - 1].close
-                  {
-                        // console.log( coinName2 + " phan ki tang i :" + intersect_macd_index_array[0]
-                        //   + "  i+1  : " + intersect_macd_index_array[1]
-                        //   + "  timeRequest  " + timeRequest
-                        // //  + "  lastestPrice  " + lastPrice
-                        //   + "   price  :" + priceDatas[[priceDatas.length - 1] - intersect_macd_index_array[0]].close
-                        //   )
-                            coinDivergenceList.push(coinName2)
-                          //  logStr += total_coin_phanky+ "  "+  timeRequest +", phan ki giam " + coinName2 +"  "+ intersect_macd_index_array[0]+"   " + lastPrice +"\n"                          
-                          logStr = timeRequest +", Xem ban Phan ky " + coinName2 + "  tyle_1:  " + tyle + "  tyle_0 : " + tyle0  + "  macd_0:  "+macd0 + "  macd_1 : "+ macd1 + "  range " + range +"\n"
-                          hasPhanKy = true
-                         // bot.sendMessage(chatId, logStr)
-               
-                          }
-              }
-              if( (macdData2[[macdData2.length - 1] -intersect_macd_index_array[0]].MACD < macdData2[[macdData2.length - 1] - intersect_macd_index_array[1]].MACD)
-                &&  (macdData2[[macdData2.length - 1] -intersect_macd_index_array[0]].MACD > 0)
-                && (macdData2[(macdData2.length -1)].MACD < macdData2[(macdData2.length -1)].signal)
-                  // && (priceDatas[[priceDatas.length - 1] - intersect_macd_index_array[i]].close < priceDatas[[priceDatas.length - 1] - intersect_macd_index_array[i+1]].close)
-                  && (((Math.abs(macdData2[[macdData2.length - 1] - intersect_macd_index_array[1]].MACD) /priceDatas[[priceDatas.length - 1] - intersect_macd_index_array[1]].close) *100) > super_range )
-                  )
-              {
-                    //   console.log("Ema10 " + (ema10))
-                    // console.log( coinName2 + " phan ki tang i :" + intersect_macd_index_array[0]
-                    // + "  i+1  : " + intersect_macd_index_array[1]
-                    // + "  timeRequest  " + timeRequest
-                    // + "  lastestPrice  " + lastPrice
-                    // + "   price  :" + priceDatas[[priceDatas.length - 1] - intersect_macd_index_array[0]].close
-                    // )
-                    coinDivergenceList.push(coinName2)
-                    // logStr += total_coin_phanky+ "  "+  timeRequest +", Qua ban " + coinName2 +"  "+ intersect_macd_index_array[0]+"   " 
-                    
-                    // +"\n"
-                    logStr = timeRequest +", Xem ban " + coinName2 + "  tyle_1:  " + tyle + "  tyle_0 : " + tyle0  + "  macd_0:  "+macd0 + "  macd_1 : "+ macd1+ "  supe range " + super_range+ "\n"
-                    hasPhanKy = true
-                //    bot.sendMessage(chatId, logStr)
-                  }
-
-               //   console.log("  i  " + i )
-               if(hasPhanKy == true){
-                bot.sendMessage(chatId, logStr)
-                console.log(logStr)
-              }
+        // if( (macdData2[[macdData2.length - 1] -intersect_macd_index_array[0]].MACD < macdData2[[macdData2.length - 1] - intersect_macd_index_array[1]].MACD)
+        //     &&  (macdData2[[macdData2.length - 1] -intersect_macd_index_array[0]].MACD > 0)
+        //     && (macdData2[(macdData2.length -1)].MACD < macdData2[(macdData2.length -1)].signal)
+        //     // && (priceDatas[[priceDatas.length - 1] - intersect_macd_index_array[i]].close < priceDatas[[priceDatas.length - 1] - intersect_macd_index_array[i+1]].close)
+        //     && (((Math.abs(macdData2[[macdData2.length - 1] - intersect_macd_index_array[1]].MACD) /priceDatas[[priceDatas.length - 1] - intersect_macd_index_array[1]].close) *100) > super_range )
+        //     )
+        // {
+        //       coinDivergenceList.push(coinName2)
+        //       logStr = timeRequest +", Xem ban  " + coinName2 + "  tyle_1:  " + tyle + "  tyle_0 : " + tyle0  + "  macd_0:  "+macd0 + "  macd_1 : "+ macd1 + "  super range  "+ super_range+ "\n"
+        //       hasPhanKy = true
+    
+        //     }
 
 
-             return {hasPhanKy,logStr}
-           }
+        var returnData = {}
+        
+        returnData.hasPhanKy = hasPhanKy
+        returnData.logStr = logStr
+        if(hasPhanKy == true){
+          //  bot.sendMessage(chatId, logStr)
+            console.log(JSON.stringify(returnData))
+          }
+        return returnData
+  }
 
   catch (err)
   {
-//	 console.log(err + "  " + coinName2  );
+   console.log(err + " 291   " + coinName2  );
 //	 log_str += err + "  " + coinName2 + "\n";
   // continue;
   }
@@ -386,7 +483,7 @@ const updatePriceForBuy = async (coinName2,timeRequest, range, super_range)=>{
             //  console.log("coinName " + coinName2 + "  tyle_1:  " + tyle + "  tyle_0 : " + tyle0  + "  macd_0:  "+macd0 + "  macd_1 : "+ macd1+    "  time " + timeRequest)
             
               if( (macdData2[[macdData2.length - 1] -intersect_macd_index_array[0]].MACD > macdData2[[macdData2.length - 1] - intersect_macd_index_array[1]].MACD)
-              &&  (macdData2[[macdData2.length - 1] -intersect_macd_index_array[0]].MACD > 0)
+              &&  (macdData2[[macdData2.length - 1] -intersect_macd_index_array[0]].MACD < 0)
               && (macdData2[(macdData2.length -1)].MACD > macdData2[(macdData2.length -1)].signal)
                   && (priceDatas[[priceDatas.length - 1] - intersect_macd_index_array[0]].close < priceDatas[[priceDatas.length - 1] - intersect_macd_index_array[1]].close)
                   && (((Math.abs(macdData2[[macdData2.length - 1] - intersect_macd_index_array[1]].MACD)/ priceDatas[[priceDatas.length - 1] - intersect_macd_index_array[1]].close) *100)> range )
@@ -404,18 +501,18 @@ const updatePriceForBuy = async (coinName2,timeRequest, range, super_range)=>{
                           }
               }
 
-              if( (macdData2[[macdData2.length - 1] -intersect_macd_index_array[0]].MACD > macdData2[[macdData2.length - 1] - intersect_macd_index_array[1]].MACD)
-                  &&  (macdData2[[macdData2.length - 1] -intersect_macd_index_array[0]].MACD < 0)
-                  && (macdData2[(macdData2.length -1)].MACD > macdData2[(macdData2.length -1)].signal)
-                  // && (priceDatas[[priceDatas.length - 1] - intersect_macd_index_array[i]].close < priceDatas[[priceDatas.length - 1] - intersect_macd_index_array[i+1]].close)
-                  && (((Math.abs(macdData2[[macdData2.length - 1] - intersect_macd_index_array[1]].MACD) /priceDatas[[priceDatas.length - 1] - intersect_macd_index_array[1]].close) *100) > super_range )
-                  )
-              {
-                    coinDivergenceList.push(coinName2)
-                    logStr = timeRequest +", Xem mua  " + coinName2 + "  tyle_1:  " + tyle + "  tyle_0 : " + tyle0  + "  macd_0:  "+macd0 + "  macd_1 : "+ macd1 + "  super range  "+ super_range+ "\n"
-                    hasPhanKy = true
+              // if( (macdData2[[macdData2.length - 1] -intersect_macd_index_array[0]].MACD > macdData2[[macdData2.length - 1] - intersect_macd_index_array[1]].MACD)
+              //     &&  (macdData2[[macdData2.length - 1] -intersect_macd_index_array[0]].MACD < 0)
+              //     && (macdData2[(macdData2.length -1)].MACD > macdData2[(macdData2.length -1)].signal)
+              //     // && (priceDatas[[priceDatas.length - 1] - intersect_macd_index_array[i]].close < priceDatas[[priceDatas.length - 1] - intersect_macd_index_array[i+1]].close)
+              //     && (((Math.abs(macdData2[[macdData2.length - 1] - intersect_macd_index_array[1]].MACD) /priceDatas[[priceDatas.length - 1] - intersect_macd_index_array[1]].close) *100) > super_range )
+              //     )
+              // {
+              //       coinDivergenceList.push(coinName2)
+              //       logStr = timeRequest +", Xem mua  " + coinName2 + "  tyle_1:  " + tyle + "  tyle_0 : " + tyle0  + "  macd_0:  "+macd0 + "  macd_1 : "+ macd1 + "  super range  "+ super_range+ "\n"
+              //       hasPhanKy = true
           
-                  }
+              //     }
 
 
               var returnData = {}
@@ -482,36 +579,62 @@ const updatePrice = async(timeRequest )=>{
                 var super_range = 1.25
 
              //   console.log("coinName " + coinName + "  time_request " + time_request + "  range  " + range + "  super ranger "+ super_range)
-                var check_buy = await    updatePriceForBuy(coinName,time_request,range, super_range)
+               var check_buy =    await updatePriceForBuy(coinName,time_request,range, super_range)
                
-                var check_shell =  updatePriceForSell(coinName,time_request, range, super_range)
-                await wait(100);
-           //     console.log("check_buy   "+JSON.stringify( check_buy))
+                var check_shell = await updatePriceForSell(coinName,time_request, range, super_range)
+                // wait(100);
+             // console.log("check_buy   "+JSON.stringify( check_buy) + "   " + check_buy.hasPhanKy)
                 if(check_buy.hasPhanKy == true)
                 {
                   score_buy +=1
                   console.log("Score  " + score_buy)
                   
                   logStrBUy += score_buy+ " "+check_buy.logStr 
+                  
+
                 } 
                 if(check_shell.hasPhanKy == true)
                 {
                   score_sell +=1
+                  console.log("Score shell " + score_sell)
                   logStrSell += score_sell +"   " +check_buy.logStr 
+                 
                 }
 
               }
 
-              if(score_buy >=3){
+              if(score_buy >=2){
                   bot.sendMessage(chatId, logStrBUy)
+                  var checkGiaoCatEma5mForBuy = await checkEma5mCatLenForBuy(coinName);
+
+                  console.log("hasGiaoCatEma5mForBuy   "+ coinName2 + "  " + String(checkGiaoCatEma5mForBuy.hasGiaoCatEma5mForBuy))
+     
+               if(checkGiaoCatEma5mForBuy.hasGiaoCatEma5mForBuy == true)
+                  {
+     //	console.log("phan ki 15 hoac 30 va giao cat 5m tu duoi len " +test5m.hasPhanKy+ "   logData2  : "+ test5m.logStr)
+                      var logData = "Phan ky tang 15 hoac 30 va giao cat 5m tu duoi len  "  + coinName;
+                       bot_warning.sendMessage(chatId,logData );
+                      console.log(logData);
+                  }
               }
-              if(score_sell >=3){
+              if(score_sell >=2){
                 bot.sendMessage(chatId, logStrSell)
+                
+                var checkCatEma5mForShell = await checkEma5mCatXuongForSell(coinName2);
+                console.log("hasGiaoCatEma5mForShell   "+ coinName2 + "  " + String(checkCatEma5mForShell.hasGiaoCatEma5mForShell))
+   
+                if(checkCatEma5mForShell.hasGiaoCatEma5mForShell == true)
+                {
+                 //console.log("phan ki 15 hoac 30 va giao cat 5m tu tren xuong " +test5mShell.hasPhanKy+ "   logData2  : "+ test5mShell.logStr)
+                    var logData = "Phan ky ban 15 hoac 30 va giao cat 5m tu tren xuong  " + coinName;
+                    console.log(logData);
+                   bot_warning.sendMessage(chatId,logData );
+                }
               }
           } catch (err) {
             //	 log_str += err + "  " + coinName + "\n";
               console.log("line 504 "+ coinName +"  " +err + "\n");
-               //continue;
+               continue;
             }
                 await wait(1000);
         }
