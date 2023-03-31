@@ -6,16 +6,18 @@ const TelegramBot = require('node-telegram-bot-api');
 var MACD = require('technicalindicators').MACD;
 var EMA = require('technicalindicators').EMA
 
-var bullishengulfingpattern =require('technicalindicators').bullishengulfingpattern;
-var bullishharami =require('technicalindicators').bullishharami;
-var bullishharamicross =require('technicalindicators').bullishharamicross;
 
-var bullishmarubozu =require('technicalindicators').bullishmarubozu;
-var bullishspinningtop =require('technicalindicators').bullishspinningtop;
+var bearishengulfingpattern = require('technicalindicators').bearishengulfingpattern;
+var bearishharamicross =require('technicalindicators').bearishharamicross;
+var bearishmarubozu =require('technicalindicators').bearishmarubozu;
+var bearishharami =require('technicalindicators').bearishharami;
 
-const bullishhammer = require('technicalindicators').bullishhammer;
-var threewhitesoldiers =require('technicalindicators').threewhitesoldiers;
-const tweezerbottom = require('technicalindicators').tweezerbottom;
+var threeblackcrows =require('technicalindicators').threeblackcrows;
+
+const hammer = require('technicalindicators').bearishhammer;
+const tweezertop = require('technicalindicators').tweezertop;
+
+
 
 var express = require('express');
 var app     = express();
@@ -54,6 +56,17 @@ const client = new Binance({
 
 
 });
+
+//client.websockets.chart("BNBBTC", "1m", async (symbol, interval, chart) => {
+//    let tick = await client.last(chart);
+//    const last = chart[tick].close;
+//
+//    // Optionally convert 'chart' object to array:
+//    const ohlc = binance.ohlc(chart);
+//    console.log(ohlc);
+//});
+
+
 var log_str = "";
 
 app.get('/', function(request, response) {
@@ -111,216 +124,87 @@ function timeConverter(UNIX_timestamp){
 
 var MACD = require('technicalindicators').MACD;
 
+
 requestTime = "30m"
 var total_coin_phanky = 0
 var coinDivergenceList = []
 so_nen_check_giao_cat = 20
 currentSymbols = []
 
-const checkPatternForBuy = async(coinName, timeRequest, priceDatas)=>{
-    var result = false;
+
+const checkStoplossForBuy = async(priceDatas, coinName)=>{
+
     var fivelastCandleInput = {
-        open: [priceDatas[priceDatas.length-6].open,priceDatas[priceDatas.length-5].open,priceDatas[priceDatas.length-4].open,priceDatas[priceDatas.length-3].open, priceDatas[priceDatas.length-2].open],
-        high: [priceDatas[priceDatas.length-6].high,priceDatas[priceDatas.length-5].high,priceDatas[priceDatas.length-4].high,priceDatas[priceDatas.length-3].high, priceDatas[priceDatas.length-2].high],
-        close: [priceDatas[priceDatas.length-6].close,priceDatas[priceDatas.length-5].close,priceDatas[priceDatas.length-4].close,priceDatas[priceDatas.length-3].close, priceDatas[priceDatas.length-2].close],
-        low: [priceDatas[priceDatas.length-6].low,priceDatas[priceDatas.length-5].low,priceDatas[priceDatas.length-4].low,priceDatas[priceDatas.length-3].low, priceDatas[priceDatas.length-2].low],
+        open: [priceDatas[priceDatas.length-5].open,priceDatas[priceDatas.length-4].open,priceDatas[priceDatas.length-3].open,priceDatas[priceDatas.length-2].open, priceDatas[priceDatas.length-1].open],
+        high: [priceDatas[priceDatas.length-5].high,priceDatas[priceDatas.length-4].high,priceDatas[priceDatas.length-3].high,priceDatas[priceDatas.length-2].high, priceDatas[priceDatas.length-1].high],
+        close: [priceDatas[priceDatas.length-5].close,priceDatas[priceDatas.length-4].close,priceDatas[priceDatas.length-3].close,priceDatas[priceDatas.length-2].close, priceDatas[priceDatas.length-1].close],
+        low: [priceDatas[priceDatas.length-5].low,priceDatas[priceDatas.length-4].low,priceDatas[priceDatas.length-3].low,priceDatas[priceDatas.length-2].low, priceDatas[priceDatas.length-1].low],
     }
 
   //  console.log(fivelastCandleInput)
     var twolastCandleInput = {
-        open: [priceDatas[priceDatas.length-3].open, priceDatas[priceDatas.length-2].open],
-        high: [priceDatas[priceDatas.length-3].high, priceDatas[priceDatas.length-2].high],
-        close: [priceDatas[priceDatas.length-3].close, priceDatas[priceDatas.length-2].close],
-        low: [priceDatas[priceDatas.length-3].low, priceDatas[priceDatas.length-2].low],
+        open: [priceDatas[priceDatas.length-2].open, priceDatas[priceDatas.length-1].open],
+        high: [priceDatas[priceDatas.length-2].high, priceDatas[priceDatas.length-1].high],
+        close: [priceDatas[priceDatas.length-2].close, priceDatas[priceDatas.length-1].close],
+        low: [priceDatas[priceDatas.length-2].low, priceDatas[priceDatas.length-1].low],
     }
 
     var threelastCandleInput = {
-        open: [priceDatas[priceDatas.length-4].open,priceDatas[priceDatas.length-3].open, priceDatas[priceDatas.length-2].open],
-        high: [priceDatas[priceDatas.length-4].high,priceDatas[priceDatas.length-3].high, priceDatas[priceDatas.length-2].high],
-        close: [priceDatas[priceDatas.length-4].close,priceDatas[priceDatas.length-3].close, priceDatas[priceDatas.length-2].close],
-        low: [priceDatas[priceDatas.length-4].low,priceDatas[priceDatas.length-3].low, priceDatas[priceDatas.length-2].low],
+        open: [priceDatas[priceDatas.length-3].open,priceDatas[priceDatas.length-2].open, priceDatas[priceDatas.length-1].open],
+        high: [priceDatas[priceDatas.length-3].high,priceDatas[priceDatas.length-2].high, priceDatas[priceDatas.length-1].high],
+        close: [priceDatas[priceDatas.length-3].close,priceDatas[priceDatas.length-2].close, priceDatas[priceDatas.length-1].close],
+        low: [priceDatas[priceDatas.length-3].low,priceDatas[priceDatas.length-2].low, priceDatas[priceDatas.length-1].low],
     }
 
     var lastestCandleInput = {
-        open: [priceDatas[priceDatas.length-2].open],
-        high: [ priceDatas[priceDatas.length-2].high],
-        close: [ priceDatas[priceDatas.length-2].close],
-        low: [ priceDatas[priceDatas.length-2].low],
+        open: [priceDatas[priceDatas.length-1].open],
+        high: [ priceDatas[priceDatas.length-1].high],
+        close: [ priceDatas[priceDatas.length-1].close],
+        low: [ priceDatas[priceDatas.length-1].low],
     }
 
-    if(bullishengulfingpattern(twolastCandleInput) == true){
-        console.log(coinName +" hit bullishengulfingpattern   " + twolastCandleInput.close[twolastCandleInput.close.length-1] + "  open   " +  twolastCandleInput.open[twolastCandleInput.open.length-1])
-         result = true;
-    }
-
-    if(bullishharami(twolastCandleInput) == true){
-        console.log(coinName +" hit bullishharami   " + twolastCandleInput.close[twolastCandleInput.close.length-1] + "  open   " +  twolastCandleInput.open[twolastCandleInput.open.length-1])
-        result = true;
-    }
-
-    if(bullishharamicross(twolastCandleInput) == true){
-        console.log(coinName +" hit bullishharamicross   " + twolastCandleInput.close[twolastCandleInput.close.length-1] + "  open   " +  twolastCandleInput.open[twolastCandleInput.open.length-1])
-        result = true;
-    }
-    if(bullishmarubozu(lastestCandleInput) == true){
-        console.log(coinName +" hit bullishmarubozu   " )//+ lastestCandleInput.close[lastestCandleInput.close.length-1] + "  open   " +  lastestCandleInput.open[lastestCandleInput.open.length-1])
-        result = true;
-    }
-
-    if(bullishspinningtop(lastestCandleInput) == true)
+    if(bearishengulfingpattern(twolastCandleInput) == true)
     {
-        console.log(coinName +" hit bullishspinningtop   " )//+ lastestCandleInput.close[lastestCandleInput.close.length-1] + "  open   " +  lastestCandleInput.open[lastestCandleInput.open.length-1])
-        result = true;
+        console.log(coinName +" hit bearishengulfingpattern")
+        return true;
     }
- 
-    // if(bullishhammer(lastestCandleInput) == true)
+    if(bearishharamicross(twolastCandleInput)== true)
+    {
+        console.log(coinName +" hit bearishharamicross")
+        return true;
+    }
+
+    if(bearishmarubozu(twolastCandleInput)== true)
+    {
+        console.log(coinName +" hit bearishmarubozu   " + twolastCandleInput.close[twolastCandleInput.close.length-1] + "  open   " +  twolastCandleInput.open[twolastCandleInput.open.length-1])
+        return true;
+    }
+    
+    if(bearishharami(twolastCandleInput)== true)
+    {
+        console.log(coinName +" hit bearishharami ")
+        return true;
+    }
+
+    if(threeblackcrows(threelastCandleInput)== true){
+        console.log(coinName + " hit threeblackcrows ")
+        return true;
+    }
+
+    // if( hammer(lastestCandleInput))
     // {
-    //     console.log(coinName +" hit bullishhammer   ")// + lastestCandleInput.close[lastestCandleInput.close.length-1] + "  open   " +  lastestCandleInput.open[lastestCandleInput.open.length-1])
-    //     result = true;
+    //     console.log(" hit bear hammer ")
+    //     return true;
     // }
-  
-    if(threewhitesoldiers(threelastCandleInput) == true)
+
+    if( tweezertop(fivelastCandleInput)== true)
     {
-        console.log(coinName +" hit threewhitesoldiers   " + threelastCandleInput.close[threelastCandleInput.close.length-1] + "  open   " +  threelastCandleInput.open[threelastCandleInput.open.length-1])
-        result = true;
+        console.log(coinName +" hit bear tweezertop ")
+        return true;
     }
-
-    if(tweezerbottom(fivelastCandleInput) == true)
-    {
-        console.log(coinName +" hit tweezerbottom   " + fivelastCandleInput.close[fivelastCandleInput.close.length-1] + "  open   " +  fivelastCandleInput.open[fivelastCandleInput.open.length-1])
-        result = true;
-    }
- //   console.log("Result  " + result)
-    return result;
+    return false;
 }
 
-const updatePriceForSell =async (coinName2,timeRequest, so_nen_check_giao_cat)=>{
-    try{
-					
-        //       console.log("timeRequest  " + timeRequest + "  , coinName :  " +coinName2 )
-                    //	let macdData  = await macd(12,26,9,"close", "binance", "BNB/USDT",timeRequest,true);
-    
-                       let priceDatas =   await client.candles({ symbol: coinName2, limit:1000,interval:timeRequest })
-                         // live candles
-    //               let priceDatas =     client.ws.candles(tickers => {
-    //                      console.log(tickers)
-    //                    })
-    //                     client.ws.candles('ETHBTC', '1s', candle => {
-    //                      console.log(candle)
-    //                    })
-    
-                        var intersect_macd_index_array = []
-                        var prices = []
-                        var last50Prices = []
-                        var last10Prices = []
-                        var last5Prices = []
-    
-                        for(var i =0; i < priceDatas.length; i++)
-                        {
-                           //  console.log(coinName2+ "   "+i + "    priceDatas " + priceDatas[i].close)
-                            prices.push(Number(priceDatas[i].close))
-                        }
-                        
-                        for(var i = 30; i > 0; i--)
-                        {
-                    //	    console.log(i + "    priceDatas " + priceDatas[i].close)
-                            last50Prices.push(Number(priceDatas[priceDatas.length-i].low))
-                        }
-    
-                        for(var i = 16; i >0; i--)
-                        {
-                        //    console.log(i + "    priceDatas " + priceDatas[i].close)
-                            last10Prices.push(Number(priceDatas[priceDatas.length-i].high))
-            
-                        }
-    
-                        var min = Math.min( ...last50Prices )
-                        var max = Math.max( ...last50Prices )
-    
-    
-                        var min10 = Math.min( ...last10Prices )
-                        //var min5 = Math.min( ...last5Prices )
-                        var max10 = Math.max( ...last10Prices )
-        //                     console.log("last50Prices     " + last50Prices
-        //                      + "  min  " + min
-        //                      )
-        //                     for(var i =0; i < prices.length; i++)
-        //                        {
-        //                            console.log(i + "    priceDatas " + prices[i])
-        //
-        //                        }
-    
-    
-                           var macdInput = {
-                              values            : prices,
-                              fastPeriod        : 12,
-                              slowPeriod        : 26,
-                              signalPeriod      : 9 ,
-                              SimpleMAOscillator: false,
-                              SimpleMASignal    : false
-                            }
-    
-        //                   var result =  MACD.calculate(macdInput);
-                   //   console.log("macdInput :"+JSON.stringify(macdInput))
-                       var macdData2 = MACD.calculate(macdInput)
-                       var ema10 = EMA.calculate({period : 10, values : prices})
-                       var ema20 = EMA.calculate({period : 20, values : prices})
-                       var ema34 = EMA.calculate({period : 34, values : prices})
-                        var ema50 = EMA.calculate({period : 50, values : prices})
-                        var ema89 = EMA.calculate({period : 80, values : prices})
-                       var ema100 = EMA.calculate({period : 200, values : prices})
-    
-                       if( (ema10[ema10.length-1] < ema100[ema100.length-1]) 
-                       && (ema20[ema20.length-1] < ema100[ema100.length-1]) 
-                       && (ema34[ema34.length-1]  < ema100[ema100.length-1]) 
-                       && (ema50[ema50.length-1] < ema100[ema100.length-1]) 
-                       && (ema89[ema89.length-1] < ema100[ema100.length-1]) )
-                       {
-                  //     console.log( coinName2 + " pass sell " )
-                            if(
-                            ( ((ema10[ema10.length-1] < ema50[ema50.length-1]) &&((ema10[ema10.length-2] > ema50[ema50.length-2])||(ema10[ema10.length-3] > ema50[ema50.length-3])))
-                            ||  ((ema10[ema10.length-1] < ema34[ema34.length-1]) &&((ema34[ema34.length-2] > ema34[ema34.length-2])||(ema34[ema34.length-3] > ema34[ema34.length-3]))))
-                            && (    max10 > ema89[ema89.length-1]) 
-                            )
-                                {
-                                    
-                                    console.log( coinName2 + " Cat tu tren xuong len ema10 " +ema10[ema10.length-1]  + "  ema20 " + ema20[ema20.length-1]
-                                        + "  ema 34  " + ema34[ema34.length-1] 
-                                        + "  min " + min10
-                                    )
-    
-                                    bot.sendMessage(chatId, coinName2 + " Cat tu duoi len ")
-                            
-                                }
-                 
-                    } 
-                        var hasPhanKy = false;
-                        var logStr = "";
-    
-                   
-    
-                    //   console.log("hasPhanKy phan ky  " + hasPhanKy + "   " + logStr)
-                       return {hasPhanKy,logStr}
-    
-        //               for (var i = 0; i <ergenceList.length; i++){
-        //                    var coinName = coinDivergenceList[i]
-        //                    console.log("Con phan ky  " + coinName)
-        //
-        //               }
-    
-                     }
-    
-            catch (err)
-            {
-        //	 console.log(err + "  " + coinName2  );
-        //	 log_str += err + "  " + coinName2 + "\n";
-            // continue;
-            }
-}
-
-const checkStoplossForBuy = async(forCandleInput)=>{
-
-}
 const updatePriceForBuy =async (coinName2,timeRequest)=>{
         try{
 					
@@ -338,6 +222,7 @@ const updatePriceForBuy =async (coinName2,timeRequest)=>{
 
                     var intersect_macd_index_array = []
                     var prices = []
+                 
                     var last50Prices = []
 					var last10Prices = []
                     var last5Prices = []
@@ -347,6 +232,11 @@ const updatePriceForBuy =async (coinName2,timeRequest)=>{
                 	   //  console.log(coinName2+ "   "+i + "    priceDatas " + priceDatas[i].close)
                         prices.push(Number(priceDatas[i].close))
                     }
+             //       console.log(prices)
+             var result = await checkStoplossForBuy(priceDatas, coinName2)
+                   if( result == true){
+                     console.log("Coin Name giam " + coinName2 + "  time "+ timeRequest)
+                   }
 					
                     for(var i = 30; i > 0; i--)
                     {
@@ -395,35 +285,29 @@ const updatePriceForBuy =async (coinName2,timeRequest)=>{
                    var ema34 = EMA.calculate({period : 34, values : prices})
                     var ema50 = EMA.calculate({period : 50, values : prices})
                     var ema89 = EMA.calculate({period : 80, values : prices})
-                   var ema200 = EMA.calculate({period : 200, values : prices})
+                   var ema100 = EMA.calculate({period : 200, values : prices})
 
-                   if( (ema10[ema10.length-1] > ema200[ema200.length-1]) 
-                   && (ema20[ema20.length-1] > ema200[ema200.length-1]) 
-                   && (ema34[ema34.length-1] > ema200[ema200.length-1]) 
-                   && (ema50[ema50.length-1] > ema200[ema200.length-1]) 
-                   && (ema89[ema89.length-1] > ema200[ema200.length-1]) )
+                   if( (ema10[ema10.length-1] > ema100[ema100.length-1]) 
+                   && (ema20[ema20.length-1] > ema100[ema100.length-1]) 
+                   && (ema34[ema34.length-1] > ema100[ema100.length-1]) 
+                   && (ema50[ema50.length-1] > ema100[ema100.length-1]) 
+                   && (ema89[ema89.length-1] > ema100[ema100.length-1]) )
                    {
-                //    console.log( coinName2 + " pass long " )
+                 //   console.log( coinName2 + " pass long " )
                         if(
-                        // ( ((ema10[ema10.length-1] > ema20[ema20.length-1]) &&((ema10[ema10.length-2] < ema50[ema20.length-2])||(ema10[ema10.length-3] < ema50[ema20.length-3])))
-                        // ||  ((ema10[ema10.length-1] > ema34[ema34.length-1]) &&((ema34[ema34.length-2] < ema34[ema34.length-2])||(ema34[ema34.length-3] < ema34[ema34.length-3]))))
-
-                        (ema34[ema34.length-1] > ema50[ema50.length-1])
-                        && (ema50[ema50.length-1] > ema89[ema89.length-1])
+                        ( ((ema10[ema10.length-1] > ema20[ema20.length-1]) &&((ema10[ema10.length-2] < ema50[ema20.length-2])||(ema10[ema10.length-3] < ema50[ema20.length-3])))
+                        ||  ((ema10[ema10.length-1] > ema34[ema34.length-1]) &&((ema34[ema34.length-2] < ema34[ema34.length-2])||(ema34[ema34.length-3] < ema34[ema34.length-3]))))
                         && (    min10 < ema89[ema89.length-1]) 
-                   //     && ( priceDatas[priceDatas.length-1 ]/ min10 < 1.035) // tranh cay dung cot
+                        && ( priceDatas[priceDatas.length-1 ]/ min10 < 1.035) // tranh cay dung cot
                         )
                             {
-                                var checkBuy = await checkPatternForBuy(coinName2, timeRequest, priceDatas)
-                               // console.log("Check buy " + checkBuy)
-                                if(checkBuy == true){
-                                    console.log( coinName2 + " Cat tu duoi len ema10 " +ema10[ema10.length-1]  + "  ema20 " + ema20[ema20.length-1]
-                                        + "  ema 34  " + ema34[ema34.length-1] 
-                                        + "  min " + min10
-                                    )
+                                
+                                console.log( coinName2 + " Cat tu duoi len ema10 " +ema10[ema10.length-1]  + "  ema20 " + ema20[ema20.length-1]
+                                    + "  ema 34  " + ema34[ema34.length-1] 
+                                    + "  min " + min10
+                                )
 
-                                    bot.sendMessage(chatId, coinName2 + " Cat tu duoi len ")
-                                }
+                                bot.sendMessage(chatId, coinName2 + " Cat tu duoi len ")
                         
                             }
              
@@ -478,7 +362,8 @@ const updatePrice = async(timeRequest )=>{
                     try{
 
                       var test30m =  await  updatePriceForBuy(coinName2, "15m")
-                   //   var test30m =  await  updatePriceForSell(coinName2, "15m")
+                 //     var test30m =  await  updatePriceForBuy(coinName2, "5m")
+                  //    var test30m =  await  updatePriceForSell(coinName2, "15m")
   
                 //      var test30mShell = await   updatePriceForSell(coinName2, "30m",30)
                     

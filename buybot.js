@@ -52,6 +52,7 @@ const client = new Binance({
 
 var log_str = "";
 
+/* Creating a server and listening on port 8080. */
 app.get('/', function(request, response) {
     var result = 'App is running \n';
     response.send(result + log_str);
@@ -92,6 +93,12 @@ let ema50 = 0;
 let timeRequest = "30m";
 let prices ;
 
+/**
+ * It takes a UNIX timestamp and returns a string in the format of "date month year
+ * hour:minutes:seconds"
+ * @param UNIX_timestamp - The timestamp you want to convert.
+ * @returns The date and time in the format of: "date month year hour:minutes:seconds"
+ */
 function timeConverter(UNIX_timestamp){
   var a = new Date(UNIX_timestamp );
   var months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
@@ -145,6 +152,52 @@ const checkPinbarUp = function(open, high, low, close, coinName = "", timeReques
 
      return {result}
 }
+/**
+ * Const checkPinbarDown = function(open, high, low, close,coinName = "", timeRequest){
+ *     var long = high - low
+ *     var belowTail =  0
+ *  var result = false
+ *     if(open > close){
+ *         aboveTail = high - open
+ *     }else if(open <= close){
+ *         aboveTail = high - close
+ *     }
+ * 
+ *      if(((aboveTail) > (0.7 * long)) || ((aboveTail) > (0.5 * long)) && (close == low))
+ *      {
+ *       console.log(coinName +"  timeRequest  "+ timeRequest + "  Pinbar giam  " + (aboveTail/long) +
+ * "open : " + open + " close " + close + " low "+ low + "  high "+ high)
+ *         bot_check_log.sendMessage(chatId
+ * @param open - the opening price of the candle
+ * @param high - the highest price of the candle
+ * @param low - the lowest price of the candle
+ * @param close - the closing price of the candle
+ * @param [coinName] - the name of the coin
+ * @param timeRequest - the time of the request
+ */
+/**
+ * Const checkPinbarDown = function(open, high, low, close,coinName = "", timeRequest){
+ *     var long = high - low
+ *     var belowTail =  0
+ *  var result = false
+ *     if(open > close){
+ *         aboveTail = high - open
+ *     }else if(open <= close){
+ *         aboveTail = high - close
+ *     }
+ * 
+ *      if(((aboveTail) > (0.7 * long)) || ((aboveTail) > (0.5 * long)) && (close == low))
+ *      {
+ *       console.log(coinName +"  timeRequest  "+ timeRequest + "  Pinbar giam  " + (aboveTail/long) +
+ * "open : " + open + " close " + close + " low "+ low + "  high "+ high)
+ *         bot_check_log.sendMessage(chatId
+ * @param open - the opening price of the candle
+ * @param high - the highest price of the candle
+ * @param low - the lowest price of the candle
+ * @param close - the closing price of the candle
+ * @param [coinName] - the name of the coin
+ * @param timeRequest - the time of the request
+ */
 const checkPinbarDown = function(open, high, low, close,coinName = "", timeRequest){
     var long = high - low
     var belowTail =  0

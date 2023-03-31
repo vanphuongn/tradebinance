@@ -12,7 +12,7 @@ app.set('port', (process.env.PORT || 5000));
 
 //For avoidong Heroku $PORT error
 //const token = '1677444880:AAHC0UgHkuf0Y7NqsubVJSN4Q0WpPfFOYb8';
-const token = '5967294536:AAHR4YyRbr5OdMMfVn7xvc3xFLAITBQGw4I';
+const token = "6166932215:AAEbZ28_7Um4n3K64DOOA1BRisiSTg9siBQ"
 
 const chatId = "662991734";
 const bot = new TelegramBot(token,{polling:true});
@@ -22,7 +22,7 @@ const bot_warning = new TelegramBot(token_warning,{polling:true});
 
 
 const token_check_log_ = "6166932215:AAEbZ28_7Um4n3K64DOOA1BRisiSTg9siBQ"
-const bot_check_log = new TelegramBot(token_check_log_,{polling:true});
+//const bot_check_log = new TelegramBot(token_check_log_,{polling:true});
 
 
 const {StochasticRSI} = require('technicalindicators');
@@ -633,7 +633,7 @@ const updatePriceForBuy =async (coinName2,timeRequest)=>{
 									
 							   }else if(String(currentSymbols[i].positionSide) == "LONG")
 							   {
-									//	console.log("Trung coin name" + coinName2)
+										console.log("Trung coin name" + coinName2)
 									if((ema10[ema10.length-1] < ema20[ema20.length-1])
 								//	&&(ema10[ema10.length-2] > ema20[ema20.length-2])
 									)
@@ -794,6 +794,7 @@ const updatePrice = async(timeRequest )=>{
             //	var coinName2= "BNBUSDT"
                if(coinName2.includes("USDT"))
                 {
+					coinName2 = "TUSDT"
                     try{
                     //	 var hasGiaoCatEma5mForBuy = checkEma5mForSell(coinName2);
                 //  var test5m = await updatePriceForBuy("BTCUSDT", "4h")
@@ -801,9 +802,9 @@ const updatePrice = async(timeRequest )=>{
 			   				  // check for buy
 			   		//var test3m =   await updatePriceForBuy(coinName2, "3m")
                   //  var test5m =   await updatePriceForBuy(coinName2, "5m")
-                 //     var test15m =  await  updatePriceForBuy(coinName2, "15m")
-                      var test30m =  await  updatePriceForBuy(coinName2, "30m")
-                      var test1h =  await  updatePriceForBuy(coinName2, "1h")
+                      var test15m =  await  updatePriceForBuy(coinName2, "15m")
+                   //   var test30m =  await  updatePriceForBuy(coinName2, "30m")
+                   //   var test1h =  await  updatePriceForBuy(coinName2, "1h")
 
                       if((test30m.hasPhanKy == true)||(test1h.hasPhanKy == true)
                       ||((test15m.hasPhanKy == true)))
