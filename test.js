@@ -5,6 +5,18 @@ const macd = require('trading-indicator').macd;
 const TelegramBot = require('node-telegram-bot-api');
 var MACD = require('technicalindicators').MACD;
 var EMA = require('technicalindicators').EMA
+
+var bullishengulfingpattern =require('technicalindicators').bullishengulfingpattern;
+var bullishharami =require('technicalindicators').bullishharami;
+var bullishharamicross =require('technicalindicators').bullishharamicross;
+
+var bullishmarubozu =require('technicalindicators').bullishmarubozu;
+var bullishspinningtop =require('technicalindicators').bullishspinningtop;
+
+const bullishhammer = require('technicalindicators').bullishhammer;
+var threewhitesoldiers =require('technicalindicators').threewhitesoldiers;
+const tweezerbottom = require('technicalindicators').tweezerbottom;
+
 var express = require('express');
 var app     = express();
 const WebSocketClient = require('ws')
@@ -42,17 +54,6 @@ const client = new Binance({
 
 
 });
-
-//client.websockets.chart("BNBBTC", "1m", async (symbol, interval, chart) => {
-//    let tick = await client.last(chart);
-//    const last = chart[tick].close;
-//
-//    // Optionally convert 'chart' object to array:
-//    const ohlc = binance.ohlc(chart);
-//    console.log(ohlc);
-//});
-
-
 var log_str = "";
 
 app.get('/', function(request, response) {
@@ -109,16 +110,6 @@ function timeConverter(UNIX_timestamp){
 }
 
 var MACD = require('technicalindicators').MACD;
-//var macdInput = {
-//  values            : [127.75,129.02,132.75,145.40,148.98,137.52,147.38,139.05,137.23,149.30,162.45,178.95,200.35,221.90,243.23,243.52,286.42,280.27],
-//  fastPeriod        : 5,
-//  slowPeriod        : 8,
-//  signalPeriod      : 3 ,
-//  SimpleMAOscillator: false,
-//  SimpleMASignal    : false
-//}
-//
-//console.log("macd  "+JSON.stringify(MACD.calculate(macdInput)));
 
 requestTime = "30m"
 var total_coin_phanky = 0
@@ -126,6 +117,90 @@ var coinDivergenceList = []
 so_nen_check_giao_cat = 20
 currentSymbols = []
 
+const checkPatternForBuy = async(coinName, timeRequest, priceDatas)=>{
+    var result = false;
+    var score = 0;
+    var fivelastCandleInput = {
+        open: [priceDatas[priceDatas.length-6].open,priceDatas[priceDatas.length-5].open,priceDatas[priceDatas.length-4].open,priceDatas[priceDatas.length-3].open, priceDatas[priceDatas.length-2].open],
+        high: [priceDatas[priceDatas.length-6].high,priceDatas[priceDatas.length-5].high,priceDatas[priceDatas.length-4].high,priceDatas[priceDatas.length-3].high, priceDatas[priceDatas.length-2].high],
+        close: [priceDatas[priceDatas.length-6].close,priceDatas[priceDatas.length-5].close,priceDatas[priceDatas.length-4].close,priceDatas[priceDatas.length-3].close, priceDatas[priceDatas.length-2].close],
+        low: [priceDatas[priceDatas.length-6].low,priceDatas[priceDatas.length-5].low,priceDatas[priceDatas.length-4].low,priceDatas[priceDatas.length-3].low, priceDatas[priceDatas.length-2].low],
+    }
+
+  //  console.log(fivelastCandleInput)
+    var twolastCandleInput = {
+        open: [priceDatas[priceDatas.length-3].open, priceDatas[priceDatas.length-2].open],
+        high: [priceDatas[priceDatas.length-3].high, priceDatas[priceDatas.length-2].high],
+        close: [priceDatas[priceDatas.length-3].close, priceDatas[priceDatas.length-2].close],
+        low: [priceDatas[priceDatas.length-3].low, priceDatas[priceDatas.length-2].low],
+    }
+
+    var threelastCandleInput = {
+        open: [priceDatas[priceDatas.length-4].open,priceDatas[priceDatas.length-3].open, priceDatas[priceDatas.length-2].open],
+        high: [priceDatas[priceDatas.length-4].high,priceDatas[priceDatas.length-3].high, priceDatas[priceDatas.length-2].high],
+        close: [priceDatas[priceDatas.length-4].close,priceDatas[priceDatas.length-3].close, priceDatas[priceDatas.length-2].close],
+        low: [priceDatas[priceDatas.length-4].low,priceDatas[priceDatas.length-3].low, priceDatas[priceDatas.length-2].low],
+    }
+
+    var lastestCandleInput = {
+        open: [priceDatas[priceDatas.length-2].open],
+        high: [ priceDatas[priceDatas.length-2].high],
+        close: [ priceDatas[priceDatas.length-2].close],
+        low: [ priceDatas[priceDatas.length-2].low],
+    }
+
+    if(bullishengulfingpattern(twolastCandleInput) == true){
+        console.log(coinName +" hit bullishengulfingpattern   " + twolastCandleInput.close[twolastCandleInput.close.length-1] + "  open   " +  twolastCandleInput.open[twolastCandleInput.open.length-1])
+         result = true;
+         score +=1;
+    }
+
+    if(bullishharami(twolastCandleInput) == true){
+        console.log(coinName +" hit bullishharami   " + twolastCandleInput.close[twolastCandleInput.close.length-1] + "  open   " +  twolastCandleInput.open[twolastCandleInput.open.length-1])
+        result = true;
+        score +=1;
+    }
+
+    if(bullishharamicross(twolastCandleInput) == true){
+        console.log(coinName +" hit bullishharamicross   " + twolastCandleInput.close[twolastCandleInput.close.length-1] + "  open   " +  twolastCandleInput.open[twolastCandleInput.open.length-1])
+        result = true;
+        score +=1;
+    }
+    if(bullishmarubozu(lastestCandleInput) == true){
+        console.log(coinName +" hit bullishmarubozu   " )//+ lastestCandleInput.close[lastestCandleInput.close.length-1] + "  open   " +  lastestCandleInput.open[lastestCandleInput.open.length-1])
+        result = true;
+        score +=1;
+    }
+
+    if(bullishspinningtop(lastestCandleInput) == true)
+    {
+        console.log(coinName +" hit bullishspinningtop   " )//+ lastestCandleInput.close[lastestCandleInput.close.length-1] + "  open   " +  lastestCandleInput.open[lastestCandleInput.open.length-1])
+        result = true;
+        score +=1;
+    }
+ 
+    // if(bullishhammer(lastestCandleInput) == true)
+    // {
+    //     console.log(coinName +" hit bullishhammer   ")// + lastestCandleInput.close[lastestCandleInput.close.length-1] + "  open   " +  lastestCandleInput.open[lastestCandleInput.open.length-1])
+    //     result = true;
+    // }
+  
+    if(threewhitesoldiers(threelastCandleInput) == true)
+    {
+        console.log(coinName +" hit threewhitesoldiers   " + threelastCandleInput.close[threelastCandleInput.close.length-1] + "  open   " +  threelastCandleInput.open[threelastCandleInput.open.length-1])
+        result = true;
+        score +=1;
+    }
+
+    if(tweezerbottom(fivelastCandleInput) == true)
+    {
+        console.log(coinName +" hit tweezerbottom   " + fivelastCandleInput.close[fivelastCandleInput.close.length-1] + "  open   " +  fivelastCandleInput.open[fivelastCandleInput.open.length-1])
+        result = true;
+        score +=1;
+    }
+ //   console.log("Result  " + result)
+    return score;
+}
 
 const updatePriceForSell =async (coinName2,timeRequest, so_nen_check_giao_cat)=>{
     try{
@@ -251,9 +326,7 @@ const updatePriceForSell =async (coinName2,timeRequest, so_nen_check_giao_cat)=>
             }
 }
 
-const checkStoplossForBuy = async(forCandleInput)=>{
 
-}
 const updatePriceForBuy =async (coinName2,timeRequest)=>{
         try{
 					
@@ -328,29 +401,37 @@ const updatePriceForBuy =async (coinName2,timeRequest)=>{
                    var ema34 = EMA.calculate({period : 34, values : prices})
                     var ema50 = EMA.calculate({period : 50, values : prices})
                     var ema89 = EMA.calculate({period : 80, values : prices})
-                   var ema100 = EMA.calculate({period : 200, values : prices})
+                   var ema200 = EMA.calculate({period : 200, values : prices})
 
-                   if( (ema10[ema10.length-1] > ema100[ema100.length-1]) 
-                   && (ema20[ema20.length-1] > ema100[ema100.length-1]) 
-                   && (ema34[ema34.length-1] > ema100[ema100.length-1]) 
-                   && (ema50[ema50.length-1] > ema100[ema100.length-1]) 
-                   && (ema89[ema89.length-1] > ema100[ema100.length-1]) )
+                   if( (ema10[ema10.length-1] > ema200[ema200.length-1]) 
+                   && (ema20[ema20.length-1] > ema200[ema200.length-1]) 
+                   && (ema34[ema34.length-1] > ema200[ema200.length-1]) 
+                   && (ema50[ema50.length-1] > ema200[ema200.length-1]) 
+                   && (ema89[ema89.length-1] > ema200[ema200.length-1]) )
                    {
-                 //   console.log( coinName2 + " pass long " )
+                //    console.log( coinName2 + " pass long " )
                         if(
-                        ( ((ema10[ema10.length-1] > ema20[ema20.length-1]) &&((ema10[ema10.length-2] < ema50[ema20.length-2])||(ema10[ema10.length-3] < ema50[ema20.length-3])))
-                        ||  ((ema10[ema10.length-1] > ema34[ema34.length-1]) &&((ema34[ema34.length-2] < ema34[ema34.length-2])||(ema34[ema34.length-3] < ema34[ema34.length-3]))))
+                        // ( ((ema10[ema10.length-1] > ema20[ema20.length-1]) &&((ema10[ema10.length-2] < ema50[ema20.length-2])||(ema10[ema10.length-3] < ema50[ema20.length-3])))
+                        // ||  ((ema10[ema10.length-1] > ema34[ema34.length-1]) &&((ema34[ema34.length-2] < ema34[ema34.length-2])||(ema34[ema34.length-3] < ema34[ema34.length-3]))))
+
+                        (ema34[ema34.length-1] > ema50[ema50.length-1])
+                        && (ema50[ema50.length-1] > ema89[ema89.length-1])
                         && (    min10 < ema89[ema89.length-1]) 
-                        && ( priceDatas[priceDatas.length-1 ]/ min10 < 1.035) // tranh cay dung cot
+                   //     && ( priceDatas[priceDatas.length-1 ]/ min10 < 1.035) // tranh cay dung cot
                         )
                             {
-                                
-                                console.log( coinName2 + " Cat tu duoi len ema10 " +ema10[ema10.length-1]  + "  ema20 " + ema20[ema20.length-1]
-                                    + "  ema 34  " + ema34[ema34.length-1] 
-                                    + "  min " + min10
-                                )
+                                var checkBuy = await checkPatternForBuy(coinName2, timeRequest, priceDatas)
+                                console.log("Check buy " + checkBuy)
+                             //   if(checkBuy == true)
+                                if(checkBuy >1)
+                                {
+                                    console.log( coinName2 + " Cat tu duoi len ema10 " +ema10[ema10.length-1]  + "  ema20 " + ema20[ema20.length-1]
+                                        + "  ema 34  " + ema34[ema34.length-1] 
+                                        + "  min " + min10
+                                    )
 
-                                bot.sendMessage(chatId, coinName2 + " Cat tu duoi len ")
+                                    bot.sendMessage(chatId, coinName2 + " Cat tu duoi len score:" + checkBuy + "  timestamp  "+ timeRequest)
+                                }
                         
                             }
              
@@ -404,8 +485,10 @@ const updatePrice = async(timeRequest )=>{
                 {
                     try{
 
-                      var test30m =  await  updatePriceForBuy(coinName2, "15m")
-                      var test30m =  await  updatePriceForSell(coinName2, "15m")
+                      var test15m =  await  updatePriceForBuy(coinName2, "15m")
+                      var test30m =  await  updatePriceForBuy(coinName2, "30m")
+                      var test1h =  await  updatePriceForBuy(coinName2, "1h")
+                   //   var test30m =  await  updatePriceForSell(coinName2, "15m")
   
                 //      var test30mShell = await   updatePriceForSell(coinName2, "30m",30)
                     
@@ -636,7 +719,6 @@ const waitSellOrderCompletion = async()=>{
 	}
 
 })();
-
 
 
 

@@ -13,6 +13,7 @@
     "draw-candlestick": "^2.0.3",
     "express": "^4.17.2",
     "kdj": "^1.0.5",
+    "keltnerchannel": "^1.4.3",
     "node-telegram-bot-api": "^0.56.0",
     "trading-indicator": "^1.0.4-beta"
   }
