@@ -47,8 +47,8 @@ const {StochasticRSI} = require('technicalindicators');
 //
 //});
 const client = new Binance({
-   apiKey: '6oHHrDBqe5pra9PhYEoafxbNMANrLW1XNR75B1Lqe3sFAetMapH5P18SmCRGYvPx',
-	apiSecret:'8bvKE2GciMLJHNTPpLIDOwGDG8sCOUs7dUTUQFnad3RbuulIjXYwyC4CzhYVII4H',
+   apiKey: 'c5Qe67tOhDdb0Ftx5R95ej5Tes02sPKRBxJSozvM97zLvlhJkst29cP5FolDTr1b',
+	apiSecret:'L6Um5xSUFvcgj5WHC0MYD1NDCCIMyuBB967U7O9e2paGfubqiLI1SKZRwJcz51gn',
 	useServerTime:true,
     recvWindow: 1000, // Set a higher recvWindow to increase response timeout
 
@@ -117,6 +117,18 @@ var coinDivergenceList = []
 so_nen_check_giao_cat = 20
 currentSymbols = []
 
+const closeAllOrder = async(symbol, orderId)=>{
+    client.futuresCancelAllOpenOrders({
+        symbol: symbol,
+       
+      })
+        .then(response => {
+          console.log(response);
+        })
+        .catch(error => {
+          console.error(error);
+        });
+}
 
 const checkStoplossForBuy = async(forCandleInput)=>{
 }
@@ -248,6 +260,7 @@ const checkStopLoss = async(coinName2, timeRequest, current_position)=>{
     var last10HighPrices = []
     var last10LowPrices = []
 
+    console.log("Check stoploss for " + coinName2 + "  position  " + current_position)
     for(var i =0; i < priceDatas.length; i++)
     {
        //  console.log(coinName2+ "   "+i + "    priceDatas " + priceDatas[i].close)
@@ -340,13 +353,16 @@ const updatePriceForBuy =async (coinName2,timeRequest)=>{
 
                    let priceDatas =   await client.candles({ symbol: coinName2, limit:1000,interval:timeRequest })
 
-                   let price30mDatas =   await client.candles({ symbol: coinName2, limit:1000,interval:"30m" })
+                   let price30mDatas =   await client.candles({ symbol: coinName2, limit:1000,interval:"15m" })
                    var price30ms = []
                    for(var i =0; i < price30mDatas.length; i++)
                    {
                       //  console.log(coinName2+ "   "+i + "    priceDatas " + priceDatas[i].close)
                       price30ms.push(Number(price30mDatas[i].close))
                    }
+
+                   var ema10_15m = EMA.calculate({period : 10, values : prices})
+                   var ema20_15m = EMA.calculate({period : 20, values : prices})
 
                    var macd30mInput = {
                     values            : price30ms,
@@ -439,11 +455,36 @@ const updatePriceForBuy =async (coinName2,timeRequest)=>{
                     )
                    {
                   
-                    //    if(
-                        // ( ((ema10[ema10.length-1] > ema20[ema20.length-1]) &&((ema10[ema10.length-2] < ema50[ema20.length-2])||(ema10[ema10.length-3] < ema50[ema20.length-3])))
-                        // ||  ((ema10[ema10.length-1] > ema34[ema34.length-1]) &&((ema34[ema34.length-2] < ema34[ema34.length-2])||(ema34[ema34.length-3] < ema34[ema34.length-3]))))
-
+                
                         if(((priceDatas[priceDatas.length-1].low - ema10[ema10.length-1]) )> ((ema10[ema10.length-1] - ema89[ema89.length-1])))
+                        {
+                            //console.log( coinName2 + " pass short " + timeRequest)
+                        
+                            if((ema10_15m[ema10_15m.length-1].close  < ema20_15m[ema20_15m.length-1].close) 
+                            
+                            &&(ema10_15m[ema10_15m.length-2].close  > ema20_15m[ema20_15m.length-2].close) ){
+                                console.log( coinName2 + " chuan bij sell do phan ky "  + timeRequest )
+                                 bot.sendMessage(chatId,coinName2 + " chuan bi sell do em10 cat xuong "  + timeRequest)
+                            }
+                            // if( (macd30mData[(macd30mData.length -1)].MACD < macd30mData[(macd30mData.length -1)].signal)
+                            // && (macd30mData[(macd30mData.length -2)].MACD > macd30mData[(macd30mData.length -2)].signal)
+                            // )
+                            // {
+                            //     console.log( coinName2 + " chuan bij sell  "  + timeRequest )
+                            //     bot.sendMessage(chatId,coinName2 + " chuan bij sell  "  + timeRequest)
+                            // }
+                            // var checkPhanKySell5m =  await checkMacdPhanKyForSell(coinName2, "5m")
+                            // var checkPhanKySell15m = await checkMacdPhanKyForSell(coinName2, "15m")
+                                
+                            // if((checkPhanKySell5m == true) || (checkPhanKySell15m == true))
+                            // {
+                            //     console.log( coinName2 + " chuan bij sell do phan ky "  + timeRequest )
+                            //     bot.sendMessage(chatId,coinName2 + " chuan bi sell do phan ky 5m or 15m  "  + timeRequest)
+                            // }
+                                
+                        }
+
+                        if((((priceDatas[priceDatas.length-1].low - ema10[ema10.length-1]) )/ ((ema10[ema10.length-1] - ema89[ema89.length-1]))) >1.5)
                         {
                             //console.log( coinName2 + " pass short " + timeRequest)
                         
@@ -454,22 +495,6 @@ const updatePriceForBuy =async (coinName2,timeRequest)=>{
                                 console.log( coinName2 + " chuan bij sell  "  + timeRequest )
                                 bot.sendMessage(chatId,coinName2 + " chuan bij sell  "  + timeRequest)
                             }
-                            var checkPhanKySell5m =  await checkMacdPhanKyForSell(coinName2, "5m")
-                            var checkPhanKySell15m = await checkMacdPhanKyForSell(coinName2, "15m")
-                                
-                            if((checkPhanKySell5m == true) || (checkPhanKySell15m == true))
-                            {
-                                console.log( coinName2 + " chuan bij sell do phan ky "  + timeRequest )
-                                bot.sendMessage(chatId,coinName2 + " chuan bi sell do phan ky 5m or 15m  "  + timeRequest)
-                            }
-                                
-                        }
-
-                        if((((priceDatas[priceDatas.length-1].low - ema10[ema10.length-1]) )/ ((ema10[ema10.length-1] - ema89[ema89.length-1]))) >2.5)
-                        {
-                            //console.log( coinName2 + " pass short " + timeRequest)
-                        
-                           
                                 console.log( coinName2 + " chuan bij sell  "  + timeRequest )
                                 bot.sendMessage(chatId,coinName2 + " chuan bij sell  do (price-ema10)/(ema10-ema89) > 2.5 "  + timeRequest)
                            
@@ -496,34 +521,49 @@ const updatePriceForBuy =async (coinName2,timeRequest)=>{
                         if(((ema10[ema10.length-1] - priceDatas[priceDatas.length-1].high))> (( ema89[ema89.length-1] -ema10[ema10.length-1] )))
                         {
                             
-                         
-                        //    console.log( coinName2 + " pass long " + timeRequest)
-                            if( (macd30mData[(macd30mData.length -1)].MACD > macd30mData[(macd30mData.length -1)].signal)
-                                && (macd30mData[(macd30mData.length -2)].MACD < macd30mData[(macd30mData.length -2)].signal)
-                            ){
-                               
-                                console.log(coinName2+ " MACD  " + macd30mData[(macd30mData.length -1)].MACD + "  signal "+ macd30mData[(macd30mData.length -1)].signal
-                                + " MACD_old  " + macd30mData[(macd30mData.length -2)].MACD + "  signal_old "+ macd30mData[(macd30mData.length -2)].signal
-                                 )
-                                    console.log( coinName2 + " chuan bij buy  "  + timeRequest )
-                                    bot.sendMessage(chatId,coinName2 + " chuan bij buy  "  + timeRequest)
-                            }
-
-                            var checkPhanKyBuy5m = await checkMacdPhanKyForBuy(coinName2, "5m")
-                            var checkPhanKyBuy15m =await checkMacdPhanKyForBuy(coinName2, "15m")
-                                
-                          //  console.log("checkPhanKyBuy5m  " + JSON.stringify(checkPhanKyBuy5m) + " checkPhanKyBuy15m "+ checkPhanKyBuy15m)
-                            if((checkPhanKyBuy5m == true) || (checkPhanKyBuy15m == true))
-                            {
+                            if((ema10_15m[ema10_15m.length-1].close  > ema20_15m[ema20_15m.length-1].close) 
+                            
+                            &&(ema10_15m[ema10_15m.length-2].close  < ema20_15m[ema20_15m.length-2].close) ){
                                 console.log( coinName2 + " chuan bij buy do phan ky "  + timeRequest )
-                                bot.sendMessage(chatId,coinName2 + " chuan bij buy do phan ky 5m or 15m  "  + timeRequest)
+                                 bot.sendMessage(chatId,coinName2 + " chuan bi buy do em10 cat len "  + timeRequest)
                             }
+                        //    console.log( coinName2 + " pass long " + timeRequest)
+                        //     if( (macd30mData[(macd30mData.length -1)].MACD > macd30mData[(macd30mData.length -1)].signal)
+                        //         && (macd30mData[(macd30mData.length -2)].MACD < macd30mData[(macd30mData.length -2)].signal)
+                        //     ){
+                               
+                        //         console.log(coinName2+ " MACD  " + macd30mData[(macd30mData.length -1)].MACD + "  signal "+ macd30mData[(macd30mData.length -1)].signal
+                        //         + " MACD_old  " + macd30mData[(macd30mData.length -2)].MACD + "  signal_old "+ macd30mData[(macd30mData.length -2)].signal
+                        //          )
+                        //             console.log( coinName2 + " chuan bij buy  "  + timeRequest )
+                        //             bot.sendMessage(chatId,coinName2 + " chuan bij buy  "  + timeRequest)
+                        //     }
+
+                        //     var checkPhanKyBuy5m = await checkMacdPhanKyForBuy(coinName2, "5m")
+                        //     var checkPhanKyBuy15m =await checkMacdPhanKyForBuy(coinName2, "15m")
+                                
+                        //   //  console.log("checkPhanKyBuy5m  " + JSON.stringify(checkPhanKyBuy5m) + " checkPhanKyBuy15m "+ checkPhanKyBuy15m)
+                        //     if((checkPhanKyBuy5m == true) || (checkPhanKyBuy15m == true))
+                        //     {
+                        //         console.log( coinName2 + " chuan bij buy do phan ky "  + timeRequest )
+                        //         bot.sendMessage(chatId,coinName2 + " chuan bij buy do phan ky 5m or 15m  "  + timeRequest)
+                        //     }
 
                         }
 
-                        if((((ema10[ema10.length-1] - priceDatas[priceDatas.length-1].high)) / (( ema89[ema89.length-1] -ema10[ema10.length-1] ))) >2.5)
+                        if((((ema10[ema10.length-1] - priceDatas[priceDatas.length-1].high)) / (( ema89[ema89.length-1] -ema10[ema10.length-1] ))) >1.5)
                         {
                             
+                            if( (macd30mData[(macd30mData.length -1)].MACD > macd30mData[(macd30mData.length -1)].signal)
+                            && (macd30mData[(macd30mData.length -2)].MACD < macd30mData[(macd30mData.length -2)].signal)
+                        ){
+                           
+                            console.log(coinName2+ " MACD  " + macd30mData[(macd30mData.length -1)].MACD + "  signal "+ macd30mData[(macd30mData.length -1)].signal
+                            + " MACD_old  " + macd30mData[(macd30mData.length -2)].MACD + "  signal_old "+ macd30mData[(macd30mData.length -2)].signal
+                             )
+                                console.log( coinName2 + " chuan bij buy  "  + timeRequest )
+                                bot.sendMessage(chatId,coinName2 + " chuan bij buy  "  + timeRequest)
+                        }
                                     console.log( coinName2 + " chuan bij buy  "  + timeRequest )
                                     bot.sendMessage(chatId,coinName2 + " chuan bi buy do ( ema10-price)> (ema89-ema10) > 2.5  "  + timeRequest)
                            
@@ -560,15 +600,29 @@ const updatePrice = async(timeRequest )=>{
     try {
 
 		let accountInfo = await client.accountInfo();
-
-        currentSymbols = await client.futuresOpenOrders()
+        var activePairs = []
+        // await   client.futuresPositionRisk()
+        // .then(response => {
+        //   const activePositions = response.filter(position => parseFloat(position.positionAmt) !== 0);
+        //    activePairs = activePositions.map(position => position.symbol);
+          
+        // })
+        // .catch(error => {
+        //   console.error(error);
+        // });
+        // console.log(activePairs);
+       // currentSymbols = await client.futuresOpenOrders()
 		//  currentSymbols = []
-		//  currentSymbols = await client.futuresOpenOrders()
-		// console.log(currentSymbols);
-         for(var i = 0; i < currentSymbols.length ;i++)
-         {
-            checkStopLoss(currentSymbols[i].symbol, "15m",currentSymbols[i].positionSide)
-         }
+		//   currentSymbols = await client.futuresOpenOrders()
+		//  console.log(currentSymbols);
+        //  for(var i = 0; i < activePairs.length ;i++)
+        //  {
+        //     //console.log("Close order" + activePairs[i])
+        //  //   var closeOder = await closeAllOrder( activePairs[i])
+
+        //    checkStopLoss(currentSymbols[i].symbol, "15m",currentSymbols[i].positionSide)
+        //   // checkStopLoss(currentSymbols[i].symbol, "15m","SHORT")
+        //  }
 
        var top20 = []
         await client.futuresDailyStats().then(tickers => {
@@ -600,7 +654,7 @@ const updatePrice = async(timeRequest )=>{
          {
           //  var coinName2 = pricesArr[coinIndex].toString() ;
                var coinName2 = top20[coinIndex].symbol ;
-             //  console.log("coinName  " + coinName2)
+              console.log("coinName  " + coinName2)
             //	var coinName2= "BNBUSDT"
                if(coinName2.includes("USDT"))
                 {
