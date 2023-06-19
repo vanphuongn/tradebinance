@@ -96,18 +96,7 @@ let ema50 = 0;
 let timeRequest = "30m";
 let prices ;
 
-function timeConverter(UNIX_timestamp){
-  var a = new Date(UNIX_timestamp );
-  var months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
-  var year = a.getFullYear();
-  var month = months[a.getMonth()];
-  var date = a.getDate();
-  var hour = a.getHours();
-  var min = a.getMinutes();
-  var sec = a.getSeconds();
-  var time = date + ' ' + month + ' ' + year + ' ' + hour + ':' + min + ':' + sec ;
-  return time;
-}
+
 
 var MACD = require('technicalindicators').MACD;
 
@@ -118,6 +107,73 @@ so_nen_check_giao_cat = 20
 currentSymbols = []
 
 
+const checkEmaOverForBuy = async(coinName2, timeRequest)=>{
+    let priceDatas =   await client.candles({ symbol: coinName2, limit:1000,interval:timeRequest })
+    var prices = []
+    var last50Prices = []
+    var last10Prices = []
+    var last5Prices = []
+
+    for(var i =0; i < priceDatas.length; i++)
+    {
+        //  console.log(coinName2+ "   "+i + "    priceDatas " + priceDatas[i].close)
+        prices.push(Number(priceDatas[i].close))
+    }
+
+    var ema10 = EMA.calculate({period : 10, values : prices})
+    var ema20 = EMA.calculate({period : 20, values : prices})
+    var ema34 = EMA.calculate({period : 34, values : prices})
+    var ema50 = EMA.calculate({period : 50, values : prices})
+    var ema89 = EMA.calculate({period : 89, values : prices})
+    var ema200 = EMA.calculate({period : 200, values : prices})
+	
+    // kiem tra 100 nen gan nhat
+    var lastestOverForBuyIndex = 1000
+    var lastedEma15OverEma50 = 1000
+    var tyle2 = 0
+
+    for(var i = 0; i < 100; i++){
+        if( (ema10[ema10.length-1 -i] < ema50[ema50.length-1-i]) 
+        // && (ema20[ema20.length-1-i] < ema34[ema34.length-1-i]) 
+        && (ema10[ema10.length-1-(i+1)] > ema50[ema50.length-1-(i+1)]) 
+        )
+        {
+            lastedEma15OverEma50 = i; 
+            break;
+        }
+    }
+    for(var i = 0; i < 100; i++){
+        if( (ema10[ema10.length-1 -i] < ema20[ema20.length-1-i]) 
+        // && (ema20[ema20.length-1-i] < ema34[ema34.length-1-i]) 
+        && (ema20[ema20.length-1-i] < ema50[ema50.length-1-i]) 
+        && (ema50[ema50.length-1-i] < ema89[ema89.length-1-i]) 
+        && (ema10[ema10.length-1 ] < ema20[ema20.length-1]) 
+        //   && (ema50[ema50.length-1] > ema200[ema200.length-1])
+            )
+        {
+
+                tyle2 = (((ema10[ema10.length-1-i] - priceDatas[priceDatas.length-1-i].high)) / (( ema89[ema89.length-1-i] -ema10[ema10.length-1-i] ))) 
+                if( tyle2> 0.6)
+                {
+                    lastestOverForBuyIndex = i;
+                    break;
+                        //    console.log( coinName2 + " chuan bij buy  "  + timeRequest )
+                    //      bot.sendMessage(chatId,coinName2 + " chuan bi buy do ( ema10-price)> (ema89-ema10) > 1.5  "  + "  tyle: "+ tyle + "  "  + timeRequest)
+                    
+                }
+                
+            
+        } 
+
+    }
+   
+
+    if((lastestOverForBuyIndex < 15) && (lastedEma15OverEma50 >=4) && (lastedEma15OverEma50 < 100) ){
+      return true;
+    
+    }
+    return false;
+}
 
 
 const findEmaOverForBuy = async(coinName2, timeRequest)=>{
@@ -145,13 +201,6 @@ const findEmaOverForBuy = async(coinName2, timeRequest)=>{
     var lastedEma15OverEma50 = 1000
     var tyle2 = 0
 
-    if( (ema10[ema10.length-1] >ema50[ema50.length-1]) 
-        // && (ema20[ema20.length-1-i] < ema34[ema34.length-1-i]) 
-        && (ema10[ema10.length-2] < ema50[ema50.length-2]) 
-    )
-    {
-        bot.sendMessage(chatId," ma10>ema50 "+ coinName2 + " timerequest "+ timeRequest )
-    }
     for(var i = 0; i < 100; i++){
         if( (ema10[ema10.length-1 -i] < ema50[ema50.length-1-i]) 
         // && (ema20[ema20.length-1-i] < ema34[ema34.length-1-i]) 
@@ -196,47 +245,32 @@ const findEmaOverForBuy = async(coinName2, timeRequest)=>{
       //  var check15m = checkEMA15mForBuy(coinName2,timeRequest2)
         var score = 0
 
-        var checkEma10_4hUnderForBuy =  await checkEma10IsUnderForBuy(coinName2,"4h")
-    //    if(checkEma10_4hUnderForBuy == true)
+
+        var check15m = await checkMACD15mForBuy(coinName2,"15m")
+        var check5m = await checkMACD15mForBuy(coinName2,"5m")
+        var check3m = await checkMACD15mForBuy(coinName2,"3m")
+
+        var timeCheck = ""
+        if(check15m == true){
+            score +=1;
+            timeCheck += " 15m "
+        }
+        if(check5m == true){
+            score +=1;
+            timeCheck += " 5m "
+        }
+        if(check3m == true){
+            score +=1;
+            timeCheck += " 3m "
+        }
+
+        if((check15m == true) ||(check5m == true) || (check3m == true))
+       // if(score > 1)
         {
-            var check15m = await checkMACD15mForBuy(coinName2,"15m")
-
-            var check5m = await checkMACD15mForBuy(coinName2,"5m")
-            var check3m = await checkMACD15mForBuy(coinName2,"3m")
-            var check1m = await checkMACD15mForBuy(coinName2,"1m")
-
-        
-            //console.log("checkEma10_4hUnderForBuy  " +checkEma10_4hUnderForBuy)
-            var timeCheck = ""
-            if(check15m == true){
-                score +=1;
-                timeCheck += " 15m "
-            }
-            if(check5m == true){
-                score +=1;
-                timeCheck += " 5m "
-            }
-            if(check3m == true){
-                score +=1;
-                timeCheck += " 3m "
-
-            }
-            if(check1m == true){
-                score +=1;
-                timeCheck += " 1m "
-
-            }
-
-            if((check15m == true) ||(check5m == true) || (check3m == true)|| (check1m == true))
-        // if(score > 1)
-            {
-            
-                    bot.sendMessage(chatId," buy "+ coinName2 + " timerequest "+ timeRequest + "  timecheck: "+ timeCheck);
-                    console.log(coinName2+"   lastest over for buy :index "+ lastestOverForBuyIndex + "  lastedEma15OverEma50 "+ lastedEma15OverEma50  + " timerequest  "+ timeRequest)
-                    return true;
-                
-            }
-         }
+            bot.sendMessage(chatId," buy "+ coinName2 + " timerequest "+ timeRequest + "  timecheck: "+ timeCheck);
+            console.log(coinName2+"   lastest over for buy :index "+ lastestOverForBuyIndex + "  lastedEma15OverEma50 "+ lastedEma15OverEma50  + " timerequest  "+ timeRequest)
+            return true;
+        }
         return false;
     }
 
@@ -244,9 +278,9 @@ const findEmaOverForBuy = async(coinName2, timeRequest)=>{
     
 }
 
-const checkMACD15mForBuy= async (coinName2, timeRequest)=>{
+const checkMACDForBuy= async (coinName2, timeRequest)=>{
     try{
-  //  console.log("check macd  15m buy "+ coinName2 + " timeRequest "+ timeRequest)
+  // console.log("check macd  15m buy "+ coinName2 + " timeRequest "+ timeRequest)
     let priceDatas =   await client.candles({ symbol: coinName2, limit:1000,interval:timeRequest })
     var prices = []
 
@@ -255,6 +289,12 @@ const checkMACD15mForBuy= async (coinName2, timeRequest)=>{
        //  console.log(coinName2+ "   "+i + "    priceDatas " + priceDatas[i].close)
         prices.push(Number(priceDatas[i].close))
     }
+    var ema10 = EMA.calculate({period : 10, values : prices})
+    var ema20 = EMA.calculate({period : 20, values : prices})
+    var ema34 = EMA.calculate({period : 34, values : prices})
+    var ema50 = EMA.calculate({period : 50, values : prices})
+    var ema89 = EMA.calculate({period : 89, values : prices})
+    var ema200 = EMA.calculate({period : 200, values : prices})
 
     var macdInput = {
         values            : prices,
@@ -286,24 +326,36 @@ const checkMACD15mForBuy= async (coinName2, timeRequest)=>{
         }
     }
 
+    var isEma10Over = false;
+    if( (ema10[ema10.length-1] < ema20[ema20.length-1]) 
+    // && (ema20[ema20.length-1-i] < ema34[ema34.length-1-i]) 
+    && (ema20[ema20.length-1] < ema50[ema50.length-1]) 
+    && (ema50[ema50.length-1] < ema89[ema89.length-1]) )
+    {
+        isEma10Over = true;
+    }
+
     var min0 =0
     var min1 = 0
     var checkPhanky = false;
-    console.log(timeRequest+ "  check buy coinName  "+ coinName2+ "  macdCrossUnderToOver  " + macdCrossUnderToOver + " crossOverToUnder[0]  "+macdCrossOverToUnder  )
+ //  console.log("check buy coinName  "+ coinName2+ "  macdCrossUnderToOver  " + macdCrossUnderToOver + " crossOverToUnder[0]  "+macdCrossOverToUnder  )
   
    // console.log("coinName  "+ coinName2+ "  crossUnderToOver  " + crossUnderToOver  )
     if(macdCrossUnderToOver[0] == 0){
         var lasPrices0=[]
         var macdValues0 =[]
-        for(var i = 0; i <  macdCrossOverToUnder[0]; i++)
+        var histogramValue0 =[]
+        for(var i = macdCrossUnderToOver[1]; i <  macdCrossOverToUnder[1]; i++)
         {
-    //	    console.log(i + "    priceDatas " + priceDatas[i].close)
+    	   // console.log(i + "    priceDatas " + priceDatas[i].close)
             lasPrices0.push(parseFloat(priceDatas[priceDatas.length-1-i].close))
             macdValues0.push(parseFloat(macdData2[macdData2.length-1-i].MACD))
+            histogramValue0.push(parseFloat(macdData2[macdData2.length-1-i].histogram))
         }
 
         min0 = Math.min( ...lasPrices0 )
         var macdMin0 = Math.min( ...macdValues0 )
+        var histogramMin0 = Math.min( ...histogramValue0 )
 
        // console.log("macdValues0   "+macdValues0)
         var indexOfMin0 = lasPrices0.indexOf(min0)
@@ -311,27 +363,32 @@ const checkMACD15mForBuy= async (coinName2, timeRequest)=>{
         
         var lasPrices1=[]
         var macdValues1 =[]
-        for(var i = macdCrossUnderToOver[1]; i <  macdCrossOverToUnder[1]; i++)
+        var histogramValue1 =[]
+        for(var i = macdCrossUnderToOver[2]; i <  macdCrossOverToUnder[2]; i++)
         {
     	  //  console.log(i + "    priceDatas " + priceDatas[i].close)
             lasPrices1.push(parseFloat(priceDatas[priceDatas.length-1-i].close))
             macdValues1.push(parseFloat(macdData2[macdData2.length-1-i].MACD))
+            histogramValue1.push(parseFloat(macdData2[macdData2.length-1-i].histogram))
         }
 
         min1 = Math.min( ...lasPrices1 )
         var macdMin1 = Math.min( ...macdValues1 )
+        var histogramMin1 = Math.min( ...histogramValue1 )
         var indexOfMin1= lasPrices1.indexOf(min1)
 
   
-        // console.log(timeRequest+" check buy coinName  "+ coinName2 + "indexOfMin "+ indexOfMin0 + "  min "+min0 
-        // + "  macdAtMin0 "+ macdMin0 + " macdAtMin1  "+ macdMin1
-        // )
-
-        if((min0<min1) && (macdMin0 > macdMin1)){
-          //  bot.sendMessage(chatId,timeRequest+"   buy " + coinName2 + " stoploss "+ min0);
-            console.log(timeRequest+"MACD phan ky for buy "+ coinName2 + "  min0 "+min0 + "  min1 "+ min1)
-            checkPhanky = true;
-            return true;
+        console.log(timeRequest+" check buy coinName  "+ coinName2 + "indexOfMin "+ indexOfMin0 + "  min "+min0 
+        + "  macdAtMin0 "+ macdMin0 + " macdAtMin1  "+ macdMin1
+        )
+        if(macdData2[(macdData2.length -1)-macdCrossUnderToOver[0]].MACD  < macdData2[(macdData2.length -1)-macdCrossUnderToOver[1]].MACD )
+        {
+            if((min0<min1) && (macdMin0 > macdMin1) && (isEma10Over == true)){
+             bot.sendMessage(chatId,timeRequest+"   buy " + coinName2 + " stoploss "+ priceDatas[priceDatas.length-1].low);
+                console.log(timeRequest+"MACD phan ky for buy "+ coinName2 + "  min0 "+min0 + "  min1 "+ min1)
+                checkPhanky = true;
+                return true;
+            }
         }
     }
     }catch(err){
@@ -343,148 +400,9 @@ const checkMACD15mForBuy= async (coinName2, timeRequest)=>{
     return false;
    // return checkPhanky;
 }
-const checkEMA15mForBuy= async (coinName2, timeRequest)=>{
-  
-    console.log("check 15m buy "+ coinName2 + " timeRequest "+ timeRequest)
-    let priceDatas =   await client.candles({ symbol: coinName2, limit:1000,interval:timeRequest})
-    var prices = []
-    var last50Prices = []
-    var last10Prices = []
-    var last5Prices = []
-
-    for(var i =0; i < priceDatas.length; i++)
-    {
-        //  console.log(coinName2+ "   "+i + "    priceDatas " + priceDatas[i].close)
-        prices.push(Number(priceDatas[i].close))
-    }
-
-    var ema10 = EMA.calculate({period : 10, values : prices})
-    var ema20 = EMA.calculate({period : 20, values : prices})
-
-    //tim cac thoi diem ema10 cat ema20 tu duoi len
-    var lastedEma15OverEma20 =1000;
-
-    const crossUnderToOver = [];
-    const crossOverToUnder = [];
 
 
-
-    for(var i = 0; i < 200; i++){
-        if( (ema10[ema10.length-1 -i] < ema20[ema20.length-1-i]) 
-        // && (ema20[ema20.length-1-i] < ema34[ema34.length-1-i]) 
-        && (ema10[ema10.length-1-(i+1)] > ema20[ema20.length-1- (i+1)]) 
-        )
-        {
-            crossOverToUnder.push(i)
-        }
-    }
-
-    for(var i = 0; i < 200; i++){
-        if( (ema10[ema10.length-1 -i] > ema20[ema20.length-1-i]) 
-        // && (ema20[ema20.length-1-i] < ema34[ema34.length-1-i]) 
-        && (ema10[ema10.length-1-(i+1)] < ema20[ema20.length-1- (i+1)]) 
-        )
-        {
-            crossUnderToOver.push(i)
-        }
-    }
-    var min0 =0
-    var min1 = 0
-    
-   // console.log("coinName  "+ coinName2+ "  crossUnderToOver  " + crossUnderToOver  )
-    if(crossUnderToOver[0] == 0){
-        var lasPrices0=[]
-        for(var i = 0; i <  crossOverToUnder[0]; i++)
-        {
-    //	    console.log(i + "    priceDatas " + priceDatas[i].close)
-            lasPrices0.push(priceDatas[priceDatas.length-1-i].close)
-        }
-
-        
-        min0 = Math.min( ...lasPrices0 )
-   
-
-        
-        var lasPrices1=[]
-        for(var i = crossUnderToOver[1]; i <  crossOverToUnder[1]; i++)
-        {
-    	  //  console.log(i + "    priceDatas " + priceDatas[i].close)
-            lasPrices1.push(priceDatas[priceDatas.length-1-i].close)
-        }
-
-        min1 = Math.min( ...lasPrices1 )
-        if(min0<min1){
-            bot.sendMessage(chatId,"   buy" + coinName2 + " stoploss "+ min0);
-            console.log("Ema10 cat ema20 tu duoi len va xac nhan tang gia "+ coinName2 + "  min0 "+min0 + "  min1 "+ min1)
-            return true;
-        }
-    }
-    return false;
-    
-}
-
-const checkEma10IsOverForSell = async(coinName2, timeRequest)=>{
-    let priceDatas =   await client.candles({ symbol: coinName2, limit:1000,interval:timeRequest })
-    var prices = []
-    var last50Prices = []
-    var last10Prices = []
-    var last5Prices = []
-
-    for(var i =0; i < priceDatas.length; i++)
-    {
-        //  console.log(coinName2+ "   "+i + "    priceDatas " + priceDatas[i].close)
-        prices.push(Number(priceDatas[i].close))
-    }
-
-    var ema10 = EMA.calculate({period : 10, values : prices})
-    var ema20 = EMA.calculate({period : 20, values : prices})
-    var ema34 = EMA.calculate({period : 34, values : prices})
-    var ema50 = EMA.calculate({period : 50, values : prices})
-    var ema89 = EMA.calculate({period : 89, values : prices})
-    var ema200 = EMA.calculate({period : 200, values : prices})
-
-    if( (ema10[ema10.length-1] > ema20[ema20.length-1]) 
-    && (ema20[ema20.length-1] > ema50[ema50.length-1]) 
-   // && (ema50[ema50.length-1] > ema89[ema89.length-1]) 
-    )
-    {
-        return true;
-    }
-    return false;
-}
-const checkEma10IsUnderForBuy = async(coinName2, timeRequest)=>{
-    let priceDatas =   await client.candles({ symbol: coinName2, limit:1000,interval:timeRequest })
-    var prices = []
-    var last50Prices = []
-    var last10Prices = []
-    var last5Prices = []
-
-    for(var i =0; i < priceDatas.length; i++)
-    {
-        //  console.log(coinName2+ "   "+i + "    priceDatas " + priceDatas[i].close)
-        prices.push(Number(priceDatas[i].close))
-    }
-
-    var ema10 = EMA.calculate({period : 10, values : prices})
-    var ema20 = EMA.calculate({period : 20, values : prices})
-    var ema34 = EMA.calculate({period : 34, values : prices})
-    var ema50 = EMA.calculate({period : 50, values : prices})
-    var ema89 = EMA.calculate({period : 89, values : prices})
-    var ema200 = EMA.calculate({period : 200, values : prices})
-
-    if( (ema10[ema10.length-1] < ema20[ema20.length-1]) 
-    && (ema20[ema20.length-1] < ema50[ema50.length-1]) 
-  //  && (ema50[ema50.length-1] < ema89[ema89.length-1]) 
-    )
-    {
-        return true;
-        
-    }
-    return false;
-}
-
-
-const findEmaOverForSell = async(coinName2, timeRequest)=>{
+const checkEMAOverForSell = async(coinName2, timeRequest)=>{
     let priceDatas =   await client.candles({ symbol: coinName2, limit:1000,interval:timeRequest })
     var prices = []
     var last50Prices = []
@@ -543,58 +461,21 @@ const findEmaOverForSell = async(coinName2, timeRequest)=>{
                     
                 }
             }
+                
+            
         } 
+
     }
 
 
     if((lastestUnderForSellIndex < 15) && (lastedEma15OUnderEma50 >=4) && (lastedEma15OUnderEma50 < 100) ){
-        var timeRequest2 = "15m"
-        // if(timeRequest == "1h" ||timeRequest == "30m" )
-        // {
-        //     timeRequest2 ="5m"
-        // }
-      //  var check15m = checkEMA15mForSell(coinName2,timeRequest2)
-      var checkEma10OverForSell =  await checkEma10IsOverForSell(coinName2,"4h")
-
-      if(checkEma10OverForSell == true){
-            var check15m = await checkMACD15mForSell(coinName2,"15m")
-            var check5m = await checkMACD15mForSell(coinName2,"5m")
-            var check3m = await checkMACD15mForSell(coinName2,"30m")
-        
-
-            var score = 0;
-            var timeCheck = ""
-            if(check15m == true){
-                score +=1;
-                timeCheck += " 15m "
-            }
-            if(check5m == true){
-                score +=1;
-                timeCheck += " 5m "
-            }
-            if(check3m == true){
-                score +=1;
-                timeCheck += " 3m "
-            }
-
-            if((check15m == true)||(check5m == true)|| (check3m == true))
-        //  if(score > 1)
-            {
-             
-                bot.sendMessage(chatId,"   sell   " + coinName2 + " timeRequest "+ timeRequest +" timeCheck "+ timeCheck);
-                console.log("lastest over for sell :index "+ lastestUnderForSellIndex + "  lastedEma15OUnderEma50 "+ lastedEma15OUnderEma50  + " timerequest  "+ timeRequest)
-                return true;
-                
-            }
-
-            return false;
-        }
+        return true;
     }
     return false;
 }
 
-const checkMACD15mForSell= async (coinName2,timeRequest)=>{
-   // console.log("check macd 15m sell "+ coinName2 + " timeRequest "+ timeRequest)
+const checkMACDForSell= async (coinName2,timeRequest)=>{
+  // console.log("check macd 15m sell "+ coinName2 + " timeRequest "+ timeRequest)
     let priceDatas =   await client.candles({ symbol: coinName2, limit:1000,interval:timeRequest })
     var prices = []
 
@@ -604,6 +485,13 @@ const checkMACD15mForSell= async (coinName2,timeRequest)=>{
  //         console.log(coinName2+ "   "+i + "    priceDatas " + priceDatas[i].close)
         prices.push(Number(priceDatas[i].close))
     }
+
+    var ema10 = EMA.calculate({period : 10, values : prices})
+    var ema20 = EMA.calculate({period : 20, values : prices})
+    var ema34 = EMA.calculate({period : 34, values : prices})
+    var ema50 = EMA.calculate({period : 50, values : prices})
+    var ema89 = EMA.calculate({period : 89, values : prices})
+    var ema200 = EMA.calculate({period : 200, values : prices})
 
     var macdInput = {
         values            : prices,
@@ -616,6 +504,7 @@ const checkMACD15mForSell= async (coinName2,timeRequest)=>{
 
     var macdData2 = MACD.calculate(macdInput)
 
+    
     const macdCrossUnderToOver = [];
     const macdCrossOverToUnder = [];
 
@@ -636,143 +525,336 @@ const checkMACD15mForSell= async (coinName2,timeRequest)=>{
         }
     }
 
- 
+    var isEma10Over = false
+    if( (ema10[ema10.length-1 ] > ema20[ema20.length-1]) 
+    // && (ema20[ema20.length-1-i] < ema34[ema34.length-1-i]) 
+    && (ema20[ema20.length-1] > ema50[ema50.length-1]) 
+    && (ema50[ema50.length-1] > ema89[ema89.length-1])){
+        isEma10Over = true
+    }
 
    // console.log("coinName  "+ coinName2+ "  crossOverToUnder  " + macdCrossUnderToOver + " crossOverToUnder[0]  "+macdCrossOverToUnder[0] )
     var max0 =0
     var max1 = 0
     var checkPhanky = false;
     if(macdCrossOverToUnder[0] == 0){
-         
-     
-           var lasPrices0=[]
-           var macdValues0 =[]
-           for(var i = 0; i <  macdCrossUnderToOver[0]; i++)
-           {
-       //	    console.log(i + "    priceDatas " + priceDatas[i].close)
-               lasPrices0.push(priceDatas[priceDatas.length-1-i].close)
-               macdValues0.push(parseFloat(macdData2[macdData2.length-1-i].MACD))
-           }
-   
-           max0 = Math.max( ...lasPrices0 )
-           var macdMax0 = Math.max( ...macdValues0 )
+        // macd sau nho hon
+         if(macdData2[(macdData2.length -1)-macdCrossOverToUnder[0]].MACD  < macdData2[(macdData2.length -1)-macdCrossOverToUnder[1]].MACD )
+         {
+                var lasPrices0=[]
+                var macdValues0 =[]
+                var histogramValues0 = []
+                for(var i = macdCrossOverToUnder[1]; i <  macdCrossUnderToOver[1]; i++)
+                {
+            	 //   console.log(i + "    priceDatas " + priceDatas[i].close)
+                    lasPrices0.push(priceDatas[priceDatas.length-1-i].close)
+                    macdValues0.push(parseFloat(macdData2[macdData2.length-1-i].MACD))
+
+                    histogramValues0.push(parseFloat(macdData2[macdData2.length-1-i].histogram))
+                }
+        
+                max0 = Math.max( ...lasPrices0 )
+                var macdMax0 = Math.max( ...macdValues0 )
+                histogramMax0 = Math.max( ...histogramValues0 )
 
         //   console.log("macdValues0   "+macdValues0)
-           var indexOfMax0 = lasPrices0.indexOf(max0)
+                var indexOfMax0 = lasPrices0.indexOf(max0)
+        
+                
+                var lasPrices1=[]
+                var macdValues1 =[]
+                var histogramValues1 = []
+                for(var i = macdCrossOverToUnder[2]; i <  macdCrossUnderToOver[2]; i++)
+                {
+                    //  console.log(i + "    priceDatas " + priceDatas[i].close)
+                    lasPrices1.push(priceDatas[priceDatas.length-1-i].close)
+                    macdValues1.push(parseFloat(macdData2[macdData2.length-1-i].MACD))
+                    histogramValues1.push(parseFloat(macdData2[macdData2.length-1-i].histogram))
+                }
    
-           
-           var lasPrices1=[]
-           var macdValues1 =[]
-           for(var i = macdCrossOverToUnder[1]; i <  macdCrossUnderToOver[1]; i++)
-           {
-             //  console.log(i + "    priceDatas " + priceDatas[i].close)
-               lasPrices1.push(priceDatas[priceDatas.length-1-i].close)
-               macdValues1.push(parseFloat(macdData2[macdData2.length-1-i].MACD))
-           }
-   
-           max1 = Math.max( ...lasPrices1 )
-           var macdMax1 = Math.max( ...macdValues1 )
+                max1 = Math.max( ...lasPrices1 )
+                var macdMax1 = Math.max( ...macdValues1 )
+                var histogramMax1 = Math.max( ...histogramValues1 )
 
-          // console.log("macdValues0   "+macdValues0)
-           var indexOfMax1 = lasPrices1.indexOf(max1)
-        //    console.log(timeRequest+" check sell coinName  "+ coinName2 + "indexOfMin "+ indexOfMax0 + "  max "+max0 
-        // + "  macdAtMax0 "+ macdMax0 + " macdMax1  "+ macdMax1
-        // )
+                // console.log("macdValues0   "+macdValues0)
+                var indexOfMax1 = lasPrices1.indexOf(max1)
+                   console.log(timeRequest+" check sell coinName  "+ coinName2 + "indexOfMin "+ indexOfMax0 + "  max "+max0 
+                + "  macdAtMax0 "+ macdMax0 + " macdMax1  "+ macdMax1
+                )
 
-           if((max0> max1)&& (macdMax0 < macdMax1)){
-             //  bot.sendMessage(chatId,timeRequest+"   sell" + coinName2 + " stoploss "+ max0);
-               console.log(timeRequest+"macd phan ki giam gia "+ coinName2 + "  max0 "+max1 + "  min1 "+ max1)
-               checkPhanky = true;
+                if(((max0> max1)&& (macdMax0 < macdMax1))  && (isEma10Over == true)){
+                    bot.sendMessage(chatId,timeRequest+"   sell" + coinName2 + " stoploss "+ priceDatas[priceDatas.length-1].high + "macd0 "+ macdData2[(macdData2.length -1)-macdCrossOverToUnder[0]].MACD);
+                    console.log(timeRequest+"macd phan ki giam gia "+ coinName2 + "  max0 "+max1 + "  min1 "+ max1)
+                    checkPhanky = true;
+                }
            }
        }
-      
+
        return checkPhanky;
 }
 
-const checkEMA15mForSell= async (coinName2,timeRequest)=>{
-  
-    console.log("check 15m sell "+ coinName2 + " timeRequest "+ timeRequest)
+
+const checkMACDTiepDienForBuy= async (coinName2, timeRequest)=>{
+    try{
+  // console.log("check macd  15m buy "+ coinName2 + " timeRequest "+ timeRequest)
     let priceDatas =   await client.candles({ symbol: coinName2, limit:1000,interval:timeRequest })
     var prices = []
-    var last50Prices = []
-    var last10Prices = []
-    var last5Prices = []
 
     for(var i =0; i < priceDatas.length; i++)
     {
-        //  console.log(coinName2+ "   "+i + "    priceDatas " + priceDatas[i].close)
+       //  console.log(coinName2+ "   "+i + "    priceDatas " + priceDatas[i].close)
+        prices.push(Number(priceDatas[i].close))
+    }
+    var ema10 = EMA.calculate({period : 10, values : prices})
+    var ema20 = EMA.calculate({period : 20, values : prices})
+    var ema34 = EMA.calculate({period : 34, values : prices})
+    var ema50 = EMA.calculate({period : 50, values : prices})
+    var ema89 = EMA.calculate({period : 89, values : prices})
+    var ema200 = EMA.calculate({period : 200, values : prices})
+
+    var macdInput = {
+        values            : prices,
+        fastPeriod        : 12,
+        slowPeriod        : 26,
+        signalPeriod      : 9 ,
+        SimpleMAOscillator: false,
+        SimpleMASignal    : false
+    }
+
+    var macdData2 = MACD.calculate(macdInput)
+    const macdCrossUnderToOver = [];
+    const macdCrossOverToUnder = [];
+
+    for(var i = 0; i < 300; i++){
+        if( (macdData2[(macdData2.length -1)-i].MACD < macdData2[(macdData2.length -1)-i].signal)
+        && (macdData2[(macdData2.length -1)-(i+1)].MACD > macdData2[(macdData2.length -1)-(i+1)].signal)
+        )
+        {
+            macdCrossOverToUnder.push(i)
+        }
+
+        if( (macdData2[(macdData2.length -1)-i].MACD > macdData2[(macdData2.length -1)-i].signal)
+        && (macdData2[(macdData2.length -1)-(i+1)].MACD < macdData2[(macdData2.length -1)-(i+1)].signal)
+        )
+        {
+             //  console.log(timeRequest + "  "+i  +"  macdData  " + macdData2[i].MACD)
+            macdCrossUnderToOver.push(i)
+        }
+    }
+
+    var isEma10Over = false;
+    if( (ema10[ema10.length-1] < ema20[ema20.length-1]) 
+    // && (ema20[ema20.length-1-i] < ema34[ema34.length-1-i]) 
+    && (ema20[ema20.length-1] < ema50[ema50.length-1]) 
+    && (ema50[ema50.length-1] < ema89[ema89.length-1]) )
+    {
+        isEma10Over = true;
+    }
+
+    var min0 =0
+    var min1 = 0
+    var checkPhanky = false;
+   //console.log("check buy coinName  "+ coinName2+ "  macdCrossUnderToOver  " + macdCrossUnderToOver + " crossOverToUnder[0]  "+macdCrossOverToUnder  )
+  
+   // console.log("coinName  "+ coinName2+ "  crossUnderToOver  " + crossUnderToOver  )
+    if(macdCrossUnderToOver[0] == 0){
+        var lasPrices0=[]
+        var macdValues0 =[]
+        var histogramValue0 =[]
+        var deltaIndex = macdCrossOverToUnder[0] - macdCrossUnderToOver[0]
+        // lay vung min macd gan nhat
+        for(var i = macdCrossUnderToOver[0]; i <  macdCrossOverToUnder[0]; i++)
+        {
+    	   // console.log(i + "    priceDatas " + priceDatas[i].close)
+            lasPrices0.push(parseFloat(priceDatas[priceDatas.length-1-i].close))
+            macdValues0.push(parseFloat(macdData2[macdData2.length-1-i].MACD))
+            histogramValue0.push(parseFloat(macdData2[macdData2.length-1-i].histogram))
+        }
+
+        min0 = Math.min( ...lasPrices0 )
+        var macdMin0 = Math.min( ...macdValues0 )
+      
+
+        // dk : ema10 20 50 van theo thu tu
+        if( (ema10[ema10.length-1] > ema20[ema20.length-1]) 
+        // && (ema20[ema20.length-1-i] < ema34[ema34.length-1-i]) 
+        && (ema20[ema20.length-1] > ema50[ema50.length-1]) 
+        && (ema50[ema50.length-1] > ema89[ema89.length-1]) )
+        {
+            // check trong suot thoi gian nay ema10 ko cat ema20 tu duoi len
+            var isEma10CutEma20 = false
+            for(var i = macdCrossUnderToOver[0]; i <  macdCrossOverToUnder[0]; i++)
+            {
+                if((ema10[ema10.length-1 -i] >  ema20[ema20.length-1 -i]) && 
+                (ema10[ema10.length-1 -(i+1)] <  ema20[ema20.length-1 -(i+1)])
+                )
+                {
+                    isEma10CutEma20 = true
+                }
+                if((ema20[ema20.length-1 -i] >  ema34[ema34.length-1 -i]) && 
+                (ema20[ema20.length-1 -(i+1)] <  ema34[ema34.length-1 -(i+1)])
+                )
+                {
+                    isEma10CutEma20 = true
+                }
+                if((ema34[ema34.length-1 -i] >  ema50[ema50.length-1 -i]) && 
+                (ema34[ema34.length-1 -(i+1)] <  ema50[ema50.length-1 -(i+1)])
+                )
+                {
+                    isEma10CutEma20 = true
+                }
+
+            }
+            if((macdMin0 > 0) && (isEma10CutEma20 == false) && (deltaIndex >= 12)
+            && (macdData2[macdData2.length-1-macdCrossUnderToOver[1]].MACD < 0)
+      //      && (macdData2[macdData2.length-1-macdCrossUnderToOver[0]].MACD > macdData2[macdData2.length-1-macdCrossUnderToOver[1]].MACD )
+            ){
+                bot.sendMessage(chatId,timeRequest+"   buy tiep dien xu huong" + coinName2)
+                bot.sendMessage(chatId,timeRequest+"   buy tiep dien xu huong" + coinName2)
+            }
+        }
+      
+
+    }
+
+    }catch(err){
+        console.log(err + "\n");
+       // return checkPhanky;
+       return false;
+    
+    }
+    return false;
+   // return checkPhanky;
+}
+
+const checkMACDTiepDienForSell= async (coinName2,timeRequest)=>{
+//   console.log("check macd 15m sell "+ coinName2 + " timeRequest "+ timeRequest)
+    let priceDatas =   await client.candles({ symbol: coinName2, limit:1000,interval:timeRequest })
+    var prices = []
+
+  //  console.log("priceData"+ priceDatas)
+    for(var i =0; i < priceDatas.length; i++)
+    {
+ //         console.log(coinName2+ "   "+i + "    priceDatas " + priceDatas[i].close)
         prices.push(Number(priceDatas[i].close))
     }
 
-
-   
-
     var ema10 = EMA.calculate({period : 10, values : prices})
     var ema20 = EMA.calculate({period : 20, values : prices})
+    var ema34 = EMA.calculate({period : 34, values : prices})
+    var ema50 = EMA.calculate({period : 50, values : prices})
+    var ema89 = EMA.calculate({period : 89, values : prices})
+    var ema200 = EMA.calculate({period : 200, values : prices})
 
-    //tim cac thoi diem ema10 cat ema20 tu duoi len
-    var lastedEma15OverEma20 =1000;
+    var macdInput = {
+        values            : prices,
+        fastPeriod        : 12,
+        slowPeriod        : 26,
+        signalPeriod      : 9 ,
+        SimpleMAOscillator: false,
+        SimpleMASignal    : false
+    }
 
-    const crossUnderToOver = [];
-    const crossOverToUnder = [];
+    var macdData2 = MACD.calculate(macdInput)
+
+    
+    const macdCrossUnderToOver = [];
+    const macdCrossOverToUnder = [];
 
 
-
-    for(var i = 0; i < 200; i++){
-        if( (ema10[ema10.length-1 -i] < ema20[ema20.length-1-i]) 
-        // && (ema20[ema20.length-1-i] < ema34[ema34.length-1-i]) 
-        && (ema10[ema10.length-1-(i+1)] > ema20[ema20.length-1- (i+1)]) 
+    for(var i = 0; i < 300; i++){
+        if( (macdData2[(macdData2.length -1)-i].MACD < macdData2[(macdData2.length -1)-i].signal)
+        && (macdData2[(macdData2.length -1)-(i+1)].MACD > macdData2[(macdData2.length -1)-(i+1)].signal)
         )
         {
-            crossOverToUnder.push(i)
+            macdCrossOverToUnder.push(i)
+        }
+        if( (macdData2[(macdData2.length -1)-i].MACD > macdData2[(macdData2.length -1)-i].signal)
+        && (macdData2[(macdData2.length -1)-(i+1)].MACD < macdData2[(macdData2.length -1)-(i+1)].signal)
+        )
+        {
+        //       console.log(i  +"  macdData  " + macdData2[i].MACD)
+            macdCrossUnderToOver.push(i)
         }
     }
 
-    for(var i = 0; i < 200; i++){
-        if( (ema10[ema10.length-1 -i] > ema20[ema20.length-1-i]) 
-        // && (ema20[ema20.length-1-i] < ema34[ema34.length-1-i]) 
-        && (ema10[ema10.length-1-(i+1)] < ema20[ema20.length-1- (i+1)]) 
-        )
-        {
-            crossUnderToOver.push(i)
-        }
+    var isEma10Over = false
+    if( (ema10[ema10.length-1 ] > ema20[ema20.length-1]) 
+    // && (ema20[ema20.length-1-i] < ema34[ema34.length-1-i]) 
+    && (ema20[ema20.length-1] > ema50[ema50.length-1]) 
+    && (ema50[ema50.length-1] > ema89[ema89.length-1])){
+        isEma10Over = true
     }
+
+  //  console.log("coinName  "+ coinName2+ "  crossOverToUnder  " + macdCrossUnderToOver + " crossOverToUnder  "+macdCrossOverToUnder )
     var max0 =0
     var max1 = 0
-    
-  // console.log("coinName  "+ coinName2+ "  crossOverToUnder  " + crossOverToUnder + " crossOverToUnder[0]  "+crossOverToUnder[0] )
-    if(crossOverToUnder[0] == 0){
-     //   console.log("coinName  "+ coinName2+ "  crossOverToUnder  " + crossOverToUnder + " crossOverToUnder[0]  "+crossOverToUnder[0] )
-  
-        var lasPrices0=[]
-        for(var i = 0; i <  crossUnderToOver[0]; i++)
-        {
-    //	    console.log(i + "    priceDatas " + priceDatas[i].close)
-            lasPrices0.push(priceDatas[priceDatas.length-1-i].close)
-        }
+    var checkPhanky = false;
+    if(macdCrossOverToUnder[0] == 0){
+        // macd sau nho hon
+       //  if(macdData2[(macdData2.length -1)-macdCrossOverToUnder[0]].MACD  < macdData2[(macdData2.length -1)-macdCrossOverToUnder[1]].MACD )
+         {
+                var lasPrices0=[]
+                var macdValues0 =[]
+                var histogramValues0 = []
+                var deltaIndex = macdCrossUnderToOver[0] - macdCrossOverToUnder[0]
+                for(var i = macdCrossOverToUnder[0]; i <  macdCrossUnderToOver[0]; i++)
+                {
+            	 //   console.log(i + "    priceDatas " + priceDatas[i].close)
+                    lasPrices0.push(priceDatas[priceDatas.length-1-i].close)
+                    macdValues0.push(parseFloat(macdData2[macdData2.length-1-i].MACD))
 
-        max0 = Math.max( ...lasPrices0 )
-
+                    histogramValues0.push(parseFloat(macdData2[macdData2.length-1-i].histogram))
+                }
         
-        var lasPrices1=[]
-        for(var i = crossOverToUnder[1]; i <  crossUnderToOver[1]; i++)
-        {
-    	  //  console.log(i + "    priceDatas " + priceDatas[i].close)
-            lasPrices1.push(priceDatas[priceDatas.length-1-i].close)
-        }
+                max0 = Math.max( ...lasPrices0 )
+                var macdMax0 = Math.max( ...macdValues0 )
+           
 
-        max1 = Math.max( ...lasPrices1 )
+                if( (ema10[ema10.length-1 ] < ema20[ema20.length-1]) 
+                // && (ema20[ema20.length-1-i] < ema34[ema34.length-1-i]) 
+                && (ema20[ema20.length-1] < ema50[ema50.length-1]) 
+                && (ema50[ema50.length-1] < ema89[ema89.length-1])){
+
+                    var isEma10CutEma20 = false
+                    for(var i = macdCrossUnderToOver[0]; i <  macdCrossOverToUnder[0]; i++)
+                    {
+                        if((ema10[ema10.length-1 -i] < ema20[ema20.length-1 -i]) && 
+                        (ema10[ema10.length-1 -(i+1)] > ema20[ema20.length-1 -(i+1)])
+                        )
+                        {
+                            isEma10CutEma20 = true
+                        }
+                   
+                        if((ema20[ema20.length-1 -i] < ema34[ema34.length-1 -i]) && 
+                        (ema20[ema20.length-1 -(i+1)] > ema34[ema34.length-1 -(i+1)])
+                        )
+                        {
+                            isEma10CutEma20 = true
+                        }
+                        if((ema34[ema34.length-1 -i] < ema50[ema50.length-1 -i]) && 
+                        (ema34[ema34.length-1 -(i+1)] > ema50[ema50.length-1 -(i+1)])
+                        )
+                        {
+                            isEma10CutEma20 = true
+                        }
         
-        if(max0< max1){
-            bot.sendMessage(chatId,timeRequest+ "   sell " + coinName2 + " stoploss "+ max0);
-            console.log("Ema10 cat ema20 tu duoi tren xuong va xac nhan giam gia "+ coinName2 + "  max0 "+max1 + "  min1 "+ max1)
-            return true;
-        }
-    }
-   
-    return false;
-    
+                    }
+                    if((macdMax0 < 0)&& (isEma10CutEma20 == false) && (deltaIndex>12)
+                    && (macdData2[macdData2.length-1-macdCrossOverToUnder[1]].MACD > 0)
+                //    && (macdData2[macdData2.length-1-macdCrossOverToUnder[0]].MACD < macdData2[macdData2.length-1-macdCrossOverToUnder[1]].MACD)
+                    )
+                    {
+                        bot.sendMessage(chatId,timeRequest+" tiep dien xuong huong  sell  " + coinName2)
+                        bot.sendMessage(chatId,timeRequest+" tiep dien xuong huong  sell  " + coinName2)
+                    }
+                }
+           }
+       }
+
+       return checkPhanky;
 }
+
 
 
 const updatePrice = async(timeRequest )=>{
@@ -820,25 +902,22 @@ const updatePrice = async(timeRequest )=>{
          {
            var coinName2 = pricesArr[coinIndex].toString() ;
               // var coinName2 = top20[coinIndex].symbol ;
-          //    console.log("coinName  " + coinName2)
+           //  console.log("coinName  " + coinName2)
           // 	var coinName2= "CTKUSDT"
                if(coinName2.includes("USDT"))
                 {
                     try{
-                        
-                                              
                 //       var test30m =  await  updatePriceForBuy(coinName2, "15m")
                    //    var test30m =  await  updatePriceForBuy(coinName2, "30m")
 
                    var score_buy = 0
-                   var test30mbuy =  await  findEmaOverForBuy(coinName2, "15m")
-                    var test30mbuy =  await  findEmaOverForBuy(coinName2, "30m")
+                        var test30mbuy =  await   checkEmaOverForBuy(coinName2, "30m")
                    
-                       var test1hbuy =  await  findEmaOverForBuy(coinName2, "1h")
+                        var test1hbuy =  await  checkEmaOverForBuy(coinName2, "1h")
                        await wait(100);
-                       var test2hbuy =  await  findEmaOverForBuy(coinName2, "2h")
+                        var test2hbuy =  await  checkEmaOverForBuy(coinName2, "2h")
                         await wait(100);
-                       var test4hbuy =  await  findEmaOverForBuy(coinName2, "4h")
+                        var test4hbuy =  await  checkEmaOverForBuy(coinName2, "4h")
 
                        if(test30mbuy == true){
                             score_buy +=1;
@@ -854,22 +933,54 @@ const updatePrice = async(timeRequest )=>{
                         score_buy +=1;
                        }
                        if(score_buy > 0){
-                        console.log("Coinname "+ coinName2 + " score buy : " + score_buy)
+                        var result0=  await  checkMACDForBuy(coinName2, "3m")
+                         var result1=  await  checkMACDForBuy(coinName2, "5m")
+                         var result2=   await checkMACDForBuy(coinName2, "15m")
+                         var result3=  await  checkMACDForBuy(coinName2, "30m")
+                         //
+                        //    console.log("Coinname "+ coinName2 + " buy result1=  : " + result1 )
                        }
-                       if(score_buy > 1){
-                        bot.sendMessage(chatId," === buy ===  "+ coinName2 + " score_buy "+ score_buy);
+                       if(score_buy > 3){
+                       // bot.sendMessage(chatId," === buy ===  "+ coinName2 + " score_buy "+ score_buy);
                        }
                     //   var test30m =  await  findEmaOverForBuy(coinName2, "1d")
 
-                   var test30mbuy =  await  findEmaOverForSell(coinName2, "15m")
-                    var test30mbuy =  await  findEmaOverForSell(coinName2, "30m")
-                   
-                       var test1hbuy =  await  findEmaOverForSell(coinName2, "1h")
-                       await wait(100);
-                       var test2hbuy =  await  findEmaOverForSell(coinName2, "2h")
+                    await wait(100);
+                    var score_shell = 0
+                       var test30mShell =  await  checkEMAOverForSell(coinName2, "30m")
+                     //  console.log(" test30mShell  "+ test30mShell)
+                       var test1hShell =  await  checkEMAOverForSell(coinName2, "1h")
                         await wait(100);
-                       var test4hbuy =  await  findEmaOverForSell(coinName2, "4h")
+                        var test2hShell =  await  checkEMAOverForSell(coinName2, "2h")
+                        await wait(100);
+                        var test34hShell =  await  checkEMAOverForSell(coinName2, "4h")
 
+                        if(test30mShell == true){
+                            score_shell +=1;
+                       }
+
+                       if(test1hShell == true){
+                        score_shell +=1;
+                       }
+                       if(test2hShell == true){
+                        score_shell +=1;
+                       }
+                       if(test34hShell == true){
+                        score_shell +=1;
+                       }
+                       if(score_shell > 0){
+                        var result0= await checkMACDForSell(coinName2, "3m")
+                        var result1= await checkMACDForSell(coinName2, "5m")
+                        var result2=  await  checkMACDForSell(coinName2, "15m")
+                        var result3=  await   checkMACDForSell(coinName2, "30m")
+                         
+                           // console.log("Coinname "+ coinName2 + " result1 shell : " + result1)
+                       }
+                       if(score_shell > 3){
+                            bot.sendMessage(chatId," === shell ===  "+ coinName2 + " score_Shell "+ score_shell);
+                       }
+
+                       
                      //   var test30m =  await  findEmaOverForSell(coinName2, "1d")
                    //   var test30m =  await  updatePriceForSell(coinName2, "15m")
   
@@ -877,7 +988,7 @@ const updatePrice = async(timeRequest )=>{
                     
                       //  console.log("value  " + value)
                     }catch(err){
-                        console.log(err + "\n");
+                        console.log(err + "  " + coinName2+"\n");
                         continue;
                        
                     }
@@ -1103,6 +1214,7 @@ const waitSellOrderCompletion = async()=>{
 	}
 
 })();
+
 
 
 

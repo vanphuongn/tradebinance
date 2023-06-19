@@ -145,13 +145,6 @@ const findEmaOverForBuy = async(coinName2, timeRequest)=>{
     var lastedEma15OverEma50 = 1000
     var tyle2 = 0
 
-    if( (ema10[ema10.length-1] >ema50[ema50.length-1]) 
-        // && (ema20[ema20.length-1-i] < ema34[ema34.length-1-i]) 
-        && (ema10[ema10.length-2] < ema50[ema50.length-2]) 
-    )
-    {
-        bot.sendMessage(chatId," ma10>ema50 "+ coinName2 + " timerequest "+ timeRequest )
-    }
     for(var i = 0; i < 100; i++){
         if( (ema10[ema10.length-1 -i] < ema50[ema50.length-1-i]) 
         // && (ema20[ema20.length-1-i] < ema34[ema34.length-1-i]) 
@@ -197,13 +190,11 @@ const findEmaOverForBuy = async(coinName2, timeRequest)=>{
         var score = 0
 
         var checkEma10_4hUnderForBuy =  await checkEma10IsUnderForBuy(coinName2,"4h")
-    //    if(checkEma10_4hUnderForBuy == true)
-        {
+        if(checkEma10_4hUnderForBuy == true){
             var check15m = await checkMACD15mForBuy(coinName2,"15m")
 
             var check5m = await checkMACD15mForBuy(coinName2,"5m")
             var check3m = await checkMACD15mForBuy(coinName2,"3m")
-            var check1m = await checkMACD15mForBuy(coinName2,"1m")
 
         
             //console.log("checkEma10_4hUnderForBuy  " +checkEma10_4hUnderForBuy)
@@ -221,13 +212,8 @@ const findEmaOverForBuy = async(coinName2, timeRequest)=>{
                 timeCheck += " 3m "
 
             }
-            if(check1m == true){
-                score +=1;
-                timeCheck += " 1m "
 
-            }
-
-            if((check15m == true) ||(check5m == true) || (check3m == true)|| (check1m == true))
+            if((check15m == true) ||(check5m == true) || (check3m == true))
         // if(score > 1)
             {
             
@@ -831,13 +817,12 @@ const updatePrice = async(timeRequest )=>{
                    //    var test30m =  await  updatePriceForBuy(coinName2, "30m")
 
                    var score_buy = 0
-                   var test30mbuy =  await  findEmaOverForBuy(coinName2, "15m")
                     var test30mbuy =  await  findEmaOverForBuy(coinName2, "30m")
                    
                        var test1hbuy =  await  findEmaOverForBuy(coinName2, "1h")
                        await wait(100);
                        var test2hbuy =  await  findEmaOverForBuy(coinName2, "2h")
-                        await wait(100);
+                await wait(100);
                        var test4hbuy =  await  findEmaOverForBuy(coinName2, "4h")
 
                        if(test30mbuy == true){
@@ -861,15 +846,35 @@ const updatePrice = async(timeRequest )=>{
                        }
                     //   var test30m =  await  findEmaOverForBuy(coinName2, "1d")
 
-                   var test30mbuy =  await  findEmaOverForSell(coinName2, "15m")
-                    var test30mbuy =  await  findEmaOverForSell(coinName2, "30m")
-                   
-                       var test1hbuy =  await  findEmaOverForSell(coinName2, "1h")
-                       await wait(100);
-                       var test2hbuy =  await  findEmaOverForSell(coinName2, "2h")
+                    await wait(100);
+                    var score_shell = 0
+                       var test30mShell =  await  findEmaOverForSell(coinName2, "30m")
+                     //  console.log(" test30mShell  "+ test30mShell)
+                       var test1hShell =  await  findEmaOverForSell(coinName2, "1h")
                         await wait(100);
-                       var test4hbuy =  await  findEmaOverForSell(coinName2, "4h")
+                        var test2hShell =  await  findEmaOverForSell(coinName2, "2h")
+                        await wait(100);
+                        var test34hShell =  await  findEmaOverForSell(coinName2, "4h")
 
+                        if(test30mShell == true){
+                            score_shell +=1;
+                       }
+
+                       if(test1hShell == true){
+                        score_shell +=1;
+                       }
+                       if(test2hShell == true){
+                        score_shell +=1;
+                       }
+                       if(test34hShell == true){
+                        score_shell +=1;
+                       }
+                       if(score_shell > 0){
+                        console.log("Coinname "+ coinName2 + " score shell : " + score_shell)
+                       }
+                       if(score_shell > 1){
+                            bot.sendMessage(chatId," === shell ===  "+ coinName2 + " score_Shell "+ score_shell);
+                       }
                      //   var test30m =  await  findEmaOverForSell(coinName2, "1d")
                    //   var test30m =  await  updatePriceForSell(coinName2, "15m")
   
