@@ -145,23 +145,12 @@ const findEmaOverForBuy = async(coinName2, timeRequest)=>{
     var lastedEma15OverEma50 = 1000
     var tyle2 = 0
 
-    if( (ema10[ema10.length-1] >ema50[ema50.length-1]) 
-        // && (ema20[ema20.length-1-i] < ema34[ema34.length-1-i]) 
-        && (ema10[ema10.length-2] < ema50[ema50.length-2]) 
-    )
+  
+    if (ema50[ema50.length-1] > ema89[ema89.length-1]) 
     {
-        bot.sendMessage(chatId," ma10>ema50 "+ coinName2 + " timerequest "+ timeRequest )
+        bot.sendMessage(chatId,coinName2 + " ema10 > ema89" + "  "  + timeRequest)
     }
-    for(var i = 0; i < 100; i++){
-        if( (ema10[ema10.length-1 -i] < ema50[ema50.length-1-i]) 
-        // && (ema20[ema20.length-1-i] < ema34[ema34.length-1-i]) 
-        && (ema10[ema10.length-1-(i+1)] > ema50[ema50.length-1-(i+1)]) 
-        )
-        {
-            lastedEma15OverEma50 = i; 
-            break;
-        }
-    }
+
     for(var i = 0; i < 100; i++){
         if( (ema10[ema10.length-1 -i] < ema20[ema20.length-1-i]) 
         // && (ema20[ema20.length-1-i] < ema34[ema34.length-1-i]) 
@@ -188,56 +177,7 @@ const findEmaOverForBuy = async(coinName2, timeRequest)=>{
     }
    
 
-    if((lastestOverForBuyIndex < 15) && (lastedEma15OverEma50 >=4) && (lastedEma15OverEma50 < 100) ){
-      
-        var timeRequest2 = "15m"
-       
-      //  var check15m = checkEMA15mForBuy(coinName2,timeRequest2)
-        var score = 0
-
-        var checkEma10_4hUnderForBuy =  await checkEma10IsUnderForBuy(coinName2,"4h")
-    //    if(checkEma10_4hUnderForBuy == true)
-        {
-            var check15m = await checkMACD15mForBuy(coinName2,"15m")
-
-            var check5m = await checkMACD15mForBuy(coinName2,"5m")
-            var check3m = await checkMACD15mForBuy(coinName2,"3m")
-            var check1m = await checkMACD15mForBuy(coinName2,"1m")
-
-        
-            //console.log("checkEma10_4hUnderForBuy  " +checkEma10_4hUnderForBuy)
-            var timeCheck = ""
-            if(check15m == true){
-                score +=1;
-                timeCheck += " 15m "
-            }
-            if(check5m == true){
-                score +=1;
-                timeCheck += " 5m "
-            }
-            if(check3m == true){
-                score +=1;
-                timeCheck += " 3m "
-
-            }
-            if(check1m == true){
-                score +=1;
-                timeCheck += " 1m "
-
-            }
-
-            if((check15m == true) ||(check5m == true) || (check3m == true)|| (check1m == true))
-        // if(score > 1)
-            {
-            
-                    bot.sendMessage(chatId," buy "+ coinName2 + " timerequest "+ timeRequest + "  timecheck: "+ timeCheck);
-                    console.log(coinName2+"   lastest over for buy :index "+ lastestOverForBuyIndex + "  lastedEma15OverEma50 "+ lastedEma15OverEma50  + " timerequest  "+ timeRequest)
-                    return true;
-                
-            }
-         }
-        return false;
-    }
+ 
 
     return false;
     
@@ -829,44 +769,9 @@ const updatePrice = async(timeRequest )=>{
                    //    var test30m =  await  updatePriceForBuy(coinName2, "30m")
 
                    var score_buy = 0
-                   var test30mbuy =  await  findEmaOverForBuy(coinName2, "15m")
-                    var test30mbuy =  await  findEmaOverForBuy(coinName2, "30m")
+                   var test30mbuy =  await  findEmaOverForBuy(coinName2, "1D")
+                   var test30mbuy =  await  findEmaOverForBuy(coinName2, "4h")
                    
-                       var test1hbuy =  await  findEmaOverForBuy(coinName2, "1h")
-                       await wait(100);
-                       var test2hbuy =  await  findEmaOverForBuy(coinName2, "2h")
-                        await wait(100);
-                       var test4hbuy =  await  findEmaOverForBuy(coinName2, "4h")
-
-                       if(test30mbuy == true){
-                            score_buy +=1;
-                       }
-
-                       if(test1hbuy == true){
-                        score_buy +=1;
-                       }
-                       if(test2hbuy == true){
-                        score_buy +=1;
-                       }
-                       if(test4hbuy == true){
-                        score_buy +=1;
-                       }
-                       if(score_buy > 0){
-                        console.log("Coinname "+ coinName2 + " score buy : " + score_buy)
-                       }
-                       if(score_buy > 1){
-                        bot.sendMessage(chatId," === buy ===  "+ coinName2 + " score_buy "+ score_buy);
-                       }
-                    //   var test30m =  await  findEmaOverForBuy(coinName2, "1d")
-
-                   var test30mbuy =  await  findEmaOverForSell(coinName2, "15m")
-                    var test30mbuy =  await  findEmaOverForSell(coinName2, "30m")
-                   
-                       var test1hbuy =  await  findEmaOverForSell(coinName2, "1h")
-                       await wait(100);
-                       var test2hbuy =  await  findEmaOverForSell(coinName2, "2h")
-                        await wait(100);
-                       var test4hbuy =  await  findEmaOverForSell(coinName2, "4h")
 
                      //   var test30m =  await  findEmaOverForSell(coinName2, "1d")
                    //   var test30m =  await  updatePriceForSell(coinName2, "15m")
