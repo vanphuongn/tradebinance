@@ -336,9 +336,10 @@ const findEmaOverForBuy = async(coinName2, timeRequest)=>{
         // tu cay nen hien tai den cay nen ma ema10 cat ema20 tu duoi len
         // neu cay nen trc do la cay nen đỏ, cây hiện tại là xanh thì vào lệnh
         var hightLastCandle = Math.abs(priceDatas[priceDatas.length-1-(i+1)].close-priceDatas[priceDatas.length-1-(i+1)].open)
-        if((priceDatas[priceDatas.length-1-i].close > priceDatas[priceDatas.length-1-i].open)
-        && (priceDatas[priceDatas.length-1-(i+1)].close < priceDatas[priceDatas.length-1-(i+1)].open)
-        && (priceDatas[priceDatas.length-1-i].close > (priceDatas[priceDatas.length-1-(i+1)].close + 0.5*hightLastCandle))
+        if((priceDatas[priceDatas.length-1-(i+1)].close > priceDatas[priceDatas.length-1-(i+1)].open)  // cay nen trc la xanh
+        && (priceDatas[priceDatas.length-1-(i+2)].close < priceDatas[priceDatas.length-1-(i+2)].open) // nen trc 2 cay la do
+        && (priceDatas[priceDatas.length-1-i].close > (priceDatas[priceDatas.length-1-(i+1)].open + 0.5*hightLastCandle))// nen hien tai xanh
+        && (i+2 < lastestEMa10OUnderEma20)
         )
         {
             lastestCandleBlueAfterRed = i;
@@ -375,7 +376,7 @@ const findEmaOverForBuy = async(coinName2, timeRequest)=>{
                         }
                     }
                     if((hasEMa10UnderEma89 == false)&& (priceDatas[priceDatas.length-1-lastestEMa89UnderBBLower].close <bbResult[bbResult.length-1-lastestEMa89UnderBBLower].middle )){
-                       var higherTimeReques = "15m"
+                       var higherTimeReques = "4h"
                        if(timeRequest == "15m")
                        {
                         higherTimeReques = "30m"
@@ -388,6 +389,9 @@ const findEmaOverForBuy = async(coinName2, timeRequest)=>{
                        }else if(timeRequest == "2h")
                        {
                         higherTimeReques = "4h"
+                       }  else if(timeRequest == "4h")
+                       {
+                        higherTimeReques = "8h"
                        }
                        
                        var bbUpperOfHigherTime = await getBBUper(coinName2, higherTimeReques)
@@ -467,9 +471,11 @@ const findEmaOverForSell = async(coinName2, timeRequest)=>{
         // neu cay nen trc do la cay nen đỏ, cây hiện tại là xanh thì vào lệnh
         var hightLastCandle = Math.abs(priceDatas[priceDatas.length-1-(i+1)].close-priceDatas[priceDatas.length-1-(i+1)].open)
         
-        if((priceDatas[priceDatas.length-1-i].close < priceDatas[priceDatas.length-1-i].open)
-        && (priceDatas[priceDatas.length-1-(i+1)].close > priceDatas[priceDatas.length-1-(i+1)].open)
-        && (priceDatas[priceDatas.length-1-i].close < (priceDatas[priceDatas.length-1-(i+1)].close-0.5*hightLastCandle))
+        if((priceDatas[priceDatas.length-1-(i+1)].close < priceDatas[priceDatas.length-1-(i+1)].open)// cay nen trc do la do
+        && (priceDatas[priceDatas.length-1-(i+2)].close > priceDatas[priceDatas.length-1-(i+2)].open) // cay nen trc 2 cay la nen xanh
+        && (priceDatas[priceDatas.length-1-i].close < (priceDatas[priceDatas.length-1-(i+1)].open-0.5*hightLastCandle)
+        && (i+2 < lastestEMa1O_OverEma20)
+        ) // cay hien tai thap hon cay trc do
         )
         {
             lastestCandleRedAfterBlue = i;
@@ -506,7 +512,7 @@ const findEmaOverForSell = async(coinName2, timeRequest)=>{
                     }
                     if((hasEMa10OverEma89 == false)&& (priceDatas[priceDatas.length-1-lastestEMa89OverBBUpper].close >bbResult[bbResult.length-1-lastestEMa89OverBBUpper].middle) ){
                       
-                        var higherTimeReques = "15m"
+                        var higherTimeReques = "4h"
                        if(timeRequest == "15m")
                        {
                         higherTimeReques = "30m"
@@ -519,6 +525,10 @@ const findEmaOverForSell = async(coinName2, timeRequest)=>{
                        }else if(timeRequest == "2h")
                        {
                         higherTimeReques = "4h"
+                       }
+                       else if(timeRequest == "4h")
+                       {
+                        higherTimeReques = "8h"
                        }
                        
                        var bbLowerOfHigherTime = await getBBLower(coinName2, higherTimeReques)
@@ -595,23 +605,23 @@ const updatePrice = async(timeRequest )=>{
    await wait(200);
 
    //       var test30m =  await  updatePriceForBuy(coinName2, "15m")
-   var test30m =  await  findEmaOverForBuy("USDCUSDT", "30m")
+   var test30m =  await  findEmaOverForUSDTBuy("USDCUSDT", "30m")
    await wait(200);
-var test1h =  await  findEmaOverForBuy("USDCUSDT", "1h")
+var test1h =  await  findEmaOverForUSDTBuy("USDCUSDT", "1h")
 await wait(200);
-var test2h =  await  findEmaOverForBuy("USDCUSDT", "2h")
+var test2h =  await  findEmaOverForUSDTBuy("USDCUSDT", "2h")
 await wait(200);
-var test4h =  await  findEmaOverForBuy("USDCUSDT", "4h")
+var test4h =  await  findEmaOverForUSDTBuy("USDCUSDT", "4h")
 await wait(200);
 
 //       var test30m =  await  updatePriceForBuy(coinName2, "15m")
-var test30m =  await  findEmaOverForBuy("BUSDUSDT", "30m")
+var test30m =  await  findEmaOverForUSDTBuy("BUSDUSDT", "30m")
 await wait(200);
-var test1h =  await  findEmaOverForBuy("BUSDUSDT", "1h")
+var test1h =  await  findEmaOverForUSDTBuy("BUSDUSDT", "1h")
 await wait(200);
-var test2h =  await  findEmaOverForBuy("BUSDUSDT", "2h")
+var test2h =  await  findEmaOverForUSDTBuy("BUSDUSDT", "2h")
 await wait(200);
-var test4h =  await  findEmaOverForBuy("BUSDUSDT", "4h")
+var test4h =  await  findEmaOverForUSDTBuy("BUSDUSDT", "4h")
 await wait(200);
 
      for(var coinIndex = 0; coinIndex < pricesArr.length; coinIndex++)
