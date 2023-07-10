@@ -467,6 +467,7 @@ const findEmaOverForSell = async(coinName2, timeRequest)=>{
 
     var lastestCandleRedAfterBlue= 1000;
     for(var i =0; i < lastestEMa1O_OverEma20; i++){
+        //
         // tu cay nen hien tai den cay nen ma ema10 cat ema20 tu duoi len
         // neu cay nen trc do la cay nen đỏ, cây hiện tại là xanh thì vào lệnh
         var hightLastCandle = Math.abs(priceDatas[priceDatas.length-1-(i+1)].close-priceDatas[priceDatas.length-1-(i+1)].open)
