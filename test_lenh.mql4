@@ -1,0 +1,184 @@
+#property copyright "Copyright 2016, MetaQuotes Software Corp."
+#property link      "https://www.mql5.com"
+#property version   "1.00"
+#property strict
+//+------------------------------------------------------------------+
+//| Expert initialization function                                   |
+// NOI KHAI BAO BIEN
+
+
+      extern double khoiLuong= 0.01;// 0       
+      double stoploss = 0;
+      double takeprofit = 0;
+      extern  string ghichu =  "hello";
+      color maucualenh = clrRed;
+      extern int loaiLenh = OP_BUY; 
+      double giavaolenh=0; 
+      datetime thoigiangiaodich;
+      bool chophepGD = true;
+      int  magic =999;
+      
+//+------------------------------------------------------------------+
+int OnInit()
+  {
+//---
+  // checkLisicen();
+//---
+   return(INIT_SUCCEEDED);
+  }
+//+------------------------------------------------------------------+
+//| Expert deinitialization function                                 |
+
+//+------------------------------------------------------------------+
+void OnDeinit(const int reason)
+  {
+//---
+   
+  }
+//+------------------------------------------------------------------+
+//| Expert tick function                                             |
+//+------------------------------------------------------------------+
+void OnTick()
+  {
+     // if(chophepGD == false){return;}
+    //  if(OrdersTotal()>0){return;}  // chi cho vao 1 lenh
+      if(demsolenh( Symbol() ) >0 ){return;}
+      
+      // cho chạy code ben dưới dòng này khi qua nến mới 
+      
+      if(thoigiangiaodich == iTime(Symbol(),0,0) ){return;}thoigiangiaodich =iTime(Symbol(),0,0) ;
+//=====================================================================      
+// dieu kien vao lenh-------------- 
+  
+  laygiatrinen();
+  
+     double maxanh1 = iMA(Symbol(),0,5,0,MODE_SMA,PRICE_CLOSE,1);
+     double mado1   = iMA(Symbol(),0,20,0,MODE_SMA,PRICE_CLOSE,1);
+     double maxanh2 = iMA(Symbol(),0,5,0,MODE_SMA,PRICE_CLOSE,2);
+     double mado2   = iMA(Symbol(),0,20,0,MODE_SMA,PRICE_CLOSE,2);
+     // truong hop cat len tang gia --> buy
+     if(maxanh1 > mado1 && maxanh2 < mado2 ){loaiLenh=OP_BUY;}
+     if(maxanh1 < mado1 && maxanh2 > mado2 ){loaiLenh=OP_SELL;}
+     
+
+       //=====================================================
+ //--------------------------------
+      if(loaiLenh == OP_SELL)
+      { 
+         giavaolenh = Bid;
+         stoploss = giavaolenh + 20*10*Point();
+         takeprofit = giavaolenh - 60*10*Point();
+      }
+      if(loaiLenh ==OP_BUY)
+      {
+         giavaolenh = Ask;
+         stoploss = giavaolenh - 20*10*Point();
+         takeprofit = giavaolenh + 60*10*Point();
+      }
+   
+      khoiLuong = dinhdangLot(khoiLuong);
+                     
+      OrderSend(  Symbol(),loaiLenh,khoiLuong,giavaolenh,20,stoploss,takeprofit,ghichu,magic,0,maucualenh );
+  }
+//+------------------------------------------------------------------+
+
+void laygiatrinen()
+{
+  
+  // tim  mo hinh enguffing
+  
+  for(int n =500 ; n >=0; n--)
+  {
+      double highttruoc, lowtruoc , hightsau, lowsau ;
+     highttruoc = iHigh(Symbol(),0,n+1); 
+     lowtruoc  = iLow(Symbol(),0,n+1);
+      
+     hightsau = iHigh(Symbol(),0,n); 
+     lowsau  = iLow(Symbol(),0,n); 
+     
+     if(highttruoc<hightsau && lowtruoc > lowsau)
+     {
+         Comment(n);// gan nhat cay nen so 0
+         //break;
+     }
+     
+  }
+  
+  
+  
+  /*int caynencaonhat,caynenthapnhat;
+  caynencaonhat= iHighest(Symbol(),0,MODE_HIGH,100,0);// tra ve cay nen cao nhat
+  caynenthapnhat = iLowest(Symbol(),0,MODE_LOW,100,0);// tra ve cay nen thap nhat
+  
+  double giacaonhat = iHigh(Symbol(),0,caynencaonhat);//  lay gias hight cua ....
+  double giathapnhat = iLow(Symbol(),0,caynenthapnhat);// lay low ....
+ 
+  // Comment(caynencaonhat +" / "+ caynenthapnhat);
+
+  Comment(giacaonhat +" / "+ giathapnhat);*/
+
+
+
+
+}
+//+==================================================================+
+int  Order_Open(int ordType,string sym_,double lots,double price,double sl,double tp,int mag,string com,double bidask)
+  {// int ticket;
+  if(lots==0){return(0);}
+   color col; double Stoploss,TakeProfit;
+   double unit=1;   if(bidask!=0){unit= bidask;}
+   if(ordType==OP_BUY) {price=MarketInfo(sym_,MODE_ASK);Stoploss=price-sl*unit; TakeProfit=price+tp*unit; col=Blue;}
+   if(ordType==OP_SELL) {price=MarketInfo(sym_,MODE_BID);Stoploss=price+sl*unit; TakeProfit=price-tp*unit; col=Red;}
+   price=NormalizeDouble(price,MarketInfo(sym_,MODE_DIGITS));
+   int NormalizeLot;   if(MarketInfo(sym_,MODE_MINLOT)==0.1) {NormalizeLot=1;} else {NormalizeLot=2;}
+   lots=NormalizeDouble(lots,NormalizeLot);
+   int sucess=-1; int ross=0;int demm;
+   sucess=OrderSend(sym_,ordType,lots,price,3,0,0,com,mag,0,col);Sleep(100);
+   if(sucess>0 && (sl!=0 || tp!=0))
+     {
+      while(ross<=0 && demm<20){  ross=OrderModify(sucess,price,Stoploss,TakeProfit,0,clrNONE); demm++;Sleep(100);    }
+     }
+     int loi = GetLastError();
+   if(loi!=0 && loi !=1 ){ Print("eror"+loi);          Print(sym_+ "/price "+ price+ " /op "+ordType+"/lot "+lots);
+}
+   return(sucess);
+  }
+//+------------------------------------------
+//======================================================
+void checkLisicen()
+{
+   
+   if(AccountNumber() != 22629828 ){Alert("khong dung tai khoan");chophepGD= false;}
+   
+   if(AccountEquity()  < 1000 ){ Comment("tai khoan qua nho , rui ro cao"); }
+   
+   if(IsTradeAllowed() ==false   ){ Alert("hay click vao trade allow");}
+   
+}
+//==========================================
+int demsolenh(string captiencandem)
+{
+   int dem;
+   for(int i = OrdersTotal()-1 ; i>=0; i--)
+   {
+    if(OrderSelect(i, SELECT_BY_POS)==False)  {continue;}
+    if(OrderSymbol() != captiencandem){continue;}
+    if(OrderMagicNumber()!= magic){continue;}
+        dem ++;// dem dc 1 lenh
+   } 
+
+return(dem);
+}
+//====================================
+//====================================
+double dinhdangLot(double khoiLuong)
+{
+   if(khoiLuong==0){ khoiLuong = MarketInfo(Symbol(),MODE_MINLOT)   ; }
+   if(khoiLuong> MarketInfo(Symbol(),MODE_MAXLOT)){ khoiLuong = MarketInfo(Symbol(),MODE_MAXLOT)   ; }
+    
+    khoiLuong = NormalizeDouble(khoiLuong,2);
+     
+     return(khoiLuong);// tra ve khoi da duoc dinh dang
+     
+}
+//+==================================================================+
