@@ -263,16 +263,6 @@ const find3TimeRedFutureForBuy = async (coinName2, timeRequest) => {
         var lastestEma10UnderEma89 = -1;
 
 
-        for(var i = 0; i < ema10.length-1;i++)
-        {
-            if((ema10[ema10.length-1-i] > ema89[ema89.length-1-i]) &&(ema10[ema10.length-1-i-1] < ema89[ema89.length-1-i-1]))
-            {
-                lastestEma10UnderEma89 = i;
-         //       console.log("pass 0    "+ lastestEma10UnderEma89)
-                break;
-            }
-        }
-
         // for (var idx = 0; idx < priceDatas.length; idx++) {
         // check nhung thoi diem ma ema10 lon hon ema89
         var idx = 0;
@@ -695,7 +685,7 @@ const find3TimeRedFutureForSell = async (coinName2, timeRequest) => {
 
                     var oldestEma10CutEma20UnderToUnder = -1;
                     /// tim cay nen gan nhat ma em10 cat ema20 tu duoi len
-                    for (var i = idx; i < lastestEma10UnderEma89; i++) {
+                    for (var i = idx; i < lastestEma10OverEma89; i++) {
                         if ((ema10[ema10.length - 1 - i] > ema20[ema20.length - 1 - i])
                             && (ema10[ema10.length - 1 - (i + 1)] < ema20[ema20.length - 1 - (i + 1)])
                         ) {
@@ -975,10 +965,10 @@ const updatePrice = async (timeRequest) => {
                         
                         var test5m = await find3TimeRedFutureForBuy(coinName2, timeRequest)
                     }
-                    // await wait(100);
-                    // if (ema10_4h[ema10_4h.length - 1] < ema89_4h[ema89_4h.length - 1]) {
-                    //     var test5m = await find3TimeRedFutureForSell(coinName2, timeRequest)
-                    // }
+                    await wait(100);
+                    if (ema10_4h[ema10_4h.length - 1] < ema89_4h[ema89_4h.length - 1]) {
+                        var test5m = await find3TimeRedFutureForSell(coinName2, timeRequest)
+                    }
 
                     // var test5m = await find3TimeRedForBuy(coinName2, timeRequest)
                 } catch (err) {
@@ -1020,11 +1010,11 @@ const updatePrice = async (timeRequest) => {
 
         try {
 
-        //   await updatePrice("5m");
+           await updatePrice("5m");
            await sync();
             await updatePrice("15m");
            await sync();
-       //     await updatePrice("30m");
+            await updatePrice("30m");
 
             if (curentSymbolOrder != "") {
                 checkTp(curentSymbolOrder, curentTimeOfSymbolOrder, curentCommandTypeOfSymbolOrder);
