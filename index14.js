@@ -1471,7 +1471,7 @@ const updatePrice = async (timeRequest) => {
                 //     //await wait(200);
                 //  var test15m = await find3TimeRedFutureForBuy(priceDatas, coinName2, timeRequest)
                 //     // //     await wait(200);
-                //     var test15m = await find3TimeRedFutureForSell(priceDatas, coinName2, timeRequest)
+                     var test15m = await find3TimeRedFutureForSell(priceDatas, coinName2, timeRequest)
                 } catch (err) {
                     console.log(coinName2 + "  " + err + "\n");
                     continue;
