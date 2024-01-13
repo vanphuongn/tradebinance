@@ -636,7 +636,7 @@ const findRetestFutureForBuy = async (priceDatas, coinName2, timeRequest) => {
                             }
                         }
 
-                   //    console.log("hasLowerEma89 "+ hasLowerEma89 + " candleHasLowerEma89Idx "+ candleHasLowerEma89Idx)
+                      // console.log("hasLowerEma89 "+ hasLowerEma89 + " candleHasLowerEma89Idx "+ candleHasLowerEma89Idx)
                         // thoi diem gia low < ema89 va macd luc ay nho hon signal
                         if (hasLowerEma89 == true
                             // && (priceDatas[priceDatas.length - 1 - "lastest4EmaIsAscendingOrder"].high > priceDatas[priceDatas.length - 1 - candleHasLowerEma89Idx].low)
@@ -705,6 +705,16 @@ const findRetestFutureForBuy = async (priceDatas, coinName2, timeRequest) => {
                             }
                         }
                         else {
+
+                            //========================================
+                            // - Check neu trc khi 4 ema dc sap xep ma ko co nen nao duoi ema89
+                            // - NO se pump 1 nhip roi xuong
+                            // - Gio phai tim head fake, headfake phai ket
+                            // - Sau head fake la phai co 1 cay nen quet duoi ema89
+                            // luc nay doi ema hoc macd cat len thi vao
+                             //========================================
+
+
                             // check has headfake
                             // thi se co 2 lan macd cat signal tu tren xuong 
                             // tim lan dau macd cat xuong, bao hieu breakout va bat dau retest
@@ -721,7 +731,7 @@ const findRetestFutureForBuy = async (priceDatas, coinName2, timeRequest) => {
 
                             
 
-                          //  console.log("lastest4EmaIsAscendingOrder "+ lastest4EmaIsAscendingOrder + " macdUnderCutSignalIdx  "+ macdUnderCutSignalIdx)
+                           // console.log("lastest4EmaIsAscendingOrder "+ lastest4EmaIsAscendingOrder + " macdUnderCutSignalIdx  "+ macdUnderCutSignalIdx)
                             if(hasMacdUnderCutSignal == true)
                             {
                                  // tim gia cao nhat thu thoi diem ema10 cat ema89 ty duoi len den thoi diem sap xep theo thu tu
@@ -735,9 +745,10 @@ const findRetestFutureForBuy = async (priceDatas, coinName2, timeRequest) => {
 
                                 var hasHeadFake = false
                                 var candleHasHeadFakeIdx = -1
+
                                 for (var i = 0; i < macdUnderCutSignalIdx; i++) {
                                     if ((priceDatas[priceDatas.length - 1 - i].close < priceDatas[priceDatas.length - 1 - i].open) // co 1 cay nen do
-                                        && (priceDatas[priceDatas.length - 1 - i].open > bbResult[bbResult.length - 1 - i].upper) // gia mo cua tren bb up
+                                        && (priceDatas[priceDatas.length - 1 - i].high > bbResult[bbResult.length - 1 - i].upper) // gia mo cua tren bb up
                                         && (priceDatas[priceDatas.length - 1 - (i + 1)].close > priceDatas[priceDatas.length - 1 - (i + 1)].open)
                                         && (priceDatas[priceDatas.length - 1 - (i + 2)].close > priceDatas[priceDatas.length - 1 - (i + 2)].open)
                                     ) {
@@ -747,10 +758,15 @@ const findRetestFutureForBuy = async (priceDatas, coinName2, timeRequest) => {
                                 }
 
 
+                                //  console.log("lastest4EmaIsAscendingOrder "+ lastest4EmaIsAscendingOrder 
+                                //  + " hasHeadFake  "+ hasHeadFake 
+                                //  + " macdUnderCutSignalIdx "+ macdUnderCutSignalIdx
+                                //  )
+                                 
                                // 
                                 // sau khi co headfake thi tim diem cay nen cat xuong duoi ema89
                                 if(hasHeadFake == true){
-                                   // console.log("lastest4EmaIsAscendingOrder "+ lastest4EmaIsAscendingOrder + " candleHasHeadFakeIdx  "+ candleHasHeadFakeIdx + " "+ priceDatas[priceDatas.length-1-candleHasHeadFakeIdx].close)
+                                   
                                     var hasCandleLowerEma89 = false
                                     var candleLowerEma89Idx = -1
                                     for(var i =0;i < candleHasHeadFakeIdx; i++)
@@ -769,12 +785,19 @@ const findRetestFutureForBuy = async (priceDatas, coinName2, timeRequest) => {
                                     if(hasCandleLowerEma89 == true){
                                       //  console.log("lastest4EmaIsAscendingOrder "+ lastest4EmaIsAscendingOrder + " candleLowerEma89Idx  "+ candleLowerEma89Idx + " "+ priceDatas[priceDatas.length-1-candleLowerEma89Idx].close)
                                        var  indexForBuy = -1
+                                       var indexForBuyWithEMa = -1
                                         for(var i = 0; i< candleLowerEma89Idx; i++)
                                         {
                                             if ((macdData2[macdData2.length - 1 - i].MACD > macdData2[macdData2.length - 1 - i].signal)
                                             && (macdData2[macdData2.length - 1 - (i + 1)].MACD < macdData2[macdData2.length - 1 - (i + 1)].signal)
                                             ) {
                                                 indexForBuy = i;
+                                            }
+
+                                            if((ema10[ema10.length-1-i] > ema20[ema20.length-1-i])
+                                                && (ema10[ema10.length-1-(i+1)] < ema20[ema20.length-1-(i+1)])
+                                            ){
+                                                indexForBuyWithEMa = i;
                                             }
                                         }
 
@@ -789,6 +812,19 @@ const findRetestFutureForBuy = async (priceDatas, coinName2, timeRequest) => {
                                             if (indexForBuy < 4) {
                                                 bot.sendMessage(chatId, coinName2 + "  " + timeRequest + "  buy for retest  "
                                                     + lastest4EmaIsAscendingOrder + " p " + priceDatas[priceDatas.length - 1 - indexForBuy].close)
+                                                bot.sendMessage(chatId, coinName2 + "_" + timeRequest + "_" + "buy")
+                                            }
+                                        }
+
+                                        if (indexForBuyWithEMa > 0) {
+                                            console.log(coinName2 + "  " + timeRequest + "   buy case2 ema   lastest4EmaIsAscendingOrder " + lastest4EmaIsAscendingOrder
+                                                + " indexForBuyWithEMa " + indexForBuyWithEMa
+                                                + " price " + priceDatas[priceDatas.length-1-indexForBuyWithEMa].close
+                                            )
+    
+                                            if (indexForBuyWithEMa < 4) {
+                                                bot.sendMessage(chatId, coinName2 + "  " + timeRequest + "  buy for retest ema  "
+                                                    + lastest4EmaIsAscendingOrder + " p " + priceDatas[priceDatas.length - 1 - indexForBuyWithEMa].close)
                                                 bot.sendMessage(chatId, coinName2 + "_" + timeRequest + "_" + "buy")
                                             }
                                         }
@@ -964,8 +1000,8 @@ const findRetestFutureForSell = async (priceDatas, coinName2, timeRequest) => {
                                 var candleHasHeadFakeIdx = -1
                                 for (var i = 0; i < lastest4EmaIsAscendingOrder; i++) {
                                     if ((priceDatas[priceDatas.length - 1 - i].close > priceDatas[priceDatas.length - 1 - i].open) // co 1 cay nen do
-                                        && ((priceDatas[priceDatas.length - 1 - i].high <= bbResult[bbResult.length - 1 - i].lower) 
-                                                || (priceDatas[priceDatas.length - 1 - (i+1)].high <= bbResult[bbResult.length - 1 - (i+1)].lower) 
+                                        && ((priceDatas[priceDatas.length - 1 - i].low <= bbResult[bbResult.length - 1 - i].lower) 
+                                                || (priceDatas[priceDatas.length - 1 - (i+1)].low <= bbResult[bbResult.length - 1 - (i+1)].lower) 
                                             )// gia mo cua tren bb up
                                         && (priceDatas[priceDatas.length - 1 - (i + 1)].close < priceDatas[priceDatas.length - 1 - (i + 1)].open)
                                         && (priceDatas[priceDatas.length - 1 - (i + 2)].close < priceDatas[priceDatas.length - 1 - (i + 2)].open)
@@ -1424,18 +1460,18 @@ const updatePrice = async (timeRequest) => {
             var coinName2 = pricesArr[coinIndex].toString();
             // var coinName2 = top20[coinIndex].symbol ;
             //  console.log("coinName  " + coinName2)
-          //   var coinName2 = "PEOPLEUSDT"
+          //   var coinName2 = "MOVRUSDT"
 
             if (coinName2.includes("USDT") && (coinName2 != "COCOSUSDT") && (coinName2 != "BICOUSDT")) {
                 try {
                     var priceDatas = await client.futuresCandles({ symbol: coinName2, limit: 1000, interval: timeRequest })
 
                     var test15m = await findRetestFutureForBuy(priceDatas, coinName2, timeRequest)
-                    var test15m = await findRetestFutureForSell(priceDatas, coinName2, timeRequest)
-                    //await wait(200);
-                 var test15m = await find3TimeRedFutureForBuy(priceDatas, coinName2, timeRequest)
-                    // //     await wait(200);
-                    var test15m = await find3TimeRedFutureForSell(priceDatas, coinName2, timeRequest)
+                //    var test15m = await findRetestFutureForSell(priceDatas, coinName2, timeRequest)
+                //     //await wait(200);
+                //  var test15m = await find3TimeRedFutureForBuy(priceDatas, coinName2, timeRequest)
+                //     // //     await wait(200);
+                //     var test15m = await find3TimeRedFutureForSell(priceDatas, coinName2, timeRequest)
                 } catch (err) {
                     console.log(coinName2 + "  " + err + "\n");
                     continue;
