@@ -31,7 +31,7 @@ app.set('port', (process.env.PORT || 5000));
 const token = '5967294536:AAHR4YyRbr5OdMMfVn7xvc3xFLAITBQGw4I';
 
 const chatId = "662991734";
-const HaID = "897407951"
+const HaID = "2897407951"
 //const bot = new TelegramBot(token,{polling:true});
 
 const token_warning = "6037137720:AAFBEfCG9xWY4K_3tx7VSZzMXGgmt9-Zdog"
@@ -1420,7 +1420,7 @@ const updatePrice = async (timeRequest) => {
 
 
         await sync();
-        await wait(10000);
+        await wait(20000);
     }
 
 })();
