@@ -31,7 +31,7 @@ app.set('port', (process.env.PORT || 5000));
 const token = '5967294536:AAHR4YyRbr5OdMMfVn7xvc3xFLAITBQGw4I';
 
 const chatId = "662991734";
-const HaID = "197407951"
+const HaID = "897407951"
 //const bot = new TelegramBot(token,{polling:true});
 
 const token_warning = "6037137720:AAFBEfCG9xWY4K_3tx7VSZzMXGgmt9-Zdog"
@@ -451,6 +451,7 @@ const find3TimeRedFutureForBuy = async (priceDatas, coinName2, timeRequest) => {
                                 if (hasCandlerUnderEma89 == true) {
                                     bot.sendMessage(chatId, coinName2 + "  " + timeRequest + "  buy ema " + idx + "  " + priceDatas[priceDatas.length - 1 - idx].close)
                                     bot.sendMessage(chatId, coinName2 + "_" + timeRequest + "_" + "buy")
+                                    bot.sendMessage(HaID, coinName2 + "_" + timeRequest + "_" + "buy")
 
                                     console.log(coinName2 + "  " + timeRequest + "  buy ema 222" + idx + "  " + priceDatas[priceDatas.length - 1 - idx].close)
                                 }
@@ -691,6 +692,7 @@ const findRetestFutureForBuy = async (priceDatas, coinName2, timeRequest) => {
                                             bot.sendMessage(chatId, coinName2 + "  " + timeRequest + "  buy for retest  "
                                                 + lastest4EmaIsAscendingOrder + " p " + priceDatas[priceDatas.length - 1 - lastest4EmaIsAscendingOrder].close)
                                             bot.sendMessage(chatId, coinName2 + "_" + timeRequest + "_" + "buy")
+                                            bot.sendMessage(HaID, coinName2 + "_" + timeRequest + "_" + "buy")
                                         }
                                     }
                                 }
@@ -855,6 +857,7 @@ const findRetestFutureForBuy = async (priceDatas, coinName2, timeRequest) => {
                                                         
                                                         + " pr " + priceDatas[priceDatas.length - 1 - indexForBuyWithEMa].close)
                                                     bot.sendMessage(chatId, coinName2 + "_" + timeRequest + "_" + "buy")
+                                                    bot.sendMessage(HaID, coinName2 + "_" + timeRequest + "_" + "buy")
                                                 }
                                             }
                                         }
@@ -1077,6 +1080,7 @@ const findRetestFutureForSell = async (priceDatas, coinName2, timeRequest) => {
                                             bot.sendMessage(chatId, coinName2 + "  " + timeRequest + "  sell for retest  "
                                                 + lastest4EmaIsAscendingOrder + " p " + priceDatas[priceDatas.length - 1 - lastest4EmaIsAscendingOrder].close)
                                             bot.sendMessage(chatId, coinName2 + "_" + timeRequest + "_" + "sell")
+                                            bot.sendMessage(HaID, coinName2 + "_" + timeRequest + "_" + "sell")
                                         }
                                     }
                                 }
@@ -1377,7 +1381,9 @@ const updatePrice = async (timeRequest) => {
     let buySuccess = null;
 
     //	await updateEMA();
-    //bot.sendMessage(chatId," =============Start 1 vong requets ======" );
+    bot_check_log.sendMessage(chatId," =============Start 1 vong requets ======" );
+    // bot_check_log.sendMessage(chatId," =============Start 1 vong requets ======" );
+    // bot_check_log.sendMessage(chatId," =============Start 1 vong requets ======" );
     while (true) {
         log_str = "";
         //	bot.sendMessage(chatId," =============Start 1 vong requets ======" );
