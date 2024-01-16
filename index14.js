@@ -515,7 +515,7 @@ const findRetestFutureForBuy = async (priceDatas, coinName2, timeRequest) => {
         var last10Prices = []
         var last5Prices = []
 
-        //   console.log(" priceDatas[priceDatas.length-1].closeTime   "+ typeof( priceDatas[priceDatas.length-1].close));
+         // console.log(" priceDatas[priceDatas.length-1].closeTime   "+ typeof( priceDatas[priceDatas.length-1].close));
 
         // console.log(coinName2+ " priceDatas " +  "  timeRequest "+ timeRequest)
         for (var i = 0; i < priceDatas.length; i++) {
@@ -582,10 +582,10 @@ const findRetestFutureForBuy = async (priceDatas, coinName2, timeRequest) => {
             }
         }
 
-        //  console.log("lastestEma10UnderEma89 "+ lastestEma10UnderEma89+ "  lastestEma10UnderEma50 "+ lastestEma10UnderEma50)
+     // console.log("lastestEma10UnderEma89 "+ lastestEma10UnderEma89+ "  lastestEma10UnderEma50 "+ lastestEma10UnderEma50)
         var lastest4EmaIsAscendingOrder = -1
 
-        if ((ema10[ema10.length - 1] > ema20[ema20.length - 1])
+        if ((ema10[ema10.length - 1] > ema50[ema50.length - 1])
             && (ema20[ema20.length - 1] > ema50[ema50.length - 1])
             && (ema10[ema10.length - 1] > ema89[ema89.length - 1])
             //     && (lastestEma10UnderEma50 > lastestEma10UnderEma89)
@@ -613,7 +613,7 @@ const findRetestFutureForBuy = async (priceDatas, coinName2, timeRequest) => {
                 }
             }
 
-            //    console.log(coinName2+" "+ timeRequest + "   lastest4EmaIsAscendingOrder " + lastest4EmaIsAscendingOrder)
+            //  console.log(coinName2+" "+ timeRequest + "   lastest4EmaIsAscendingOrder " + lastest4EmaIsAscendingOrder)
             try {
                 if ((lastest4EmaIsAscendingOrder != -1) && (lastestEma10UnderEma89 != -1)) {
                     var hasLowerEma89 = false
@@ -637,11 +637,13 @@ const findRetestFutureForBuy = async (priceDatas, coinName2, timeRequest) => {
                             }
                         }
 
-                        // console.log("hasLowerEma89 "+ hasLowerEma89 + " candleHasLowerEma89Idx "+ candleHasLowerEma89Idx)
+                     //    console.log("hasLowerEma89 "+ hasLowerEma89 + " candleHasLowerEma89Idx "+ candleHasLowerEma89Idx)
                         // thoi diem gia low < ema89 va macd luc ay nho hon signal
                         if (hasLowerEma89 == true
                             // && (priceDatas[priceDatas.length - 1 - "lastest4EmaIsAscendingOrder"].high > priceDatas[priceDatas.length - 1 - candleHasLowerEma89Idx].low)
                         ) {
+                            return;
+                            // neu da co cay nen cham ema89
 
                             if (macdData2[macdData2.length - 1 - candleHasLowerEma89Idx].MACD < macdData2[macdData2.length - 1 - candleHasLowerEma89Idx].signal) {
                                 // check has head fake
@@ -737,11 +739,14 @@ const findRetestFutureForBuy = async (priceDatas, coinName2, timeRequest) => {
                             if (hasMacdUnderCutSignal == true) {
                                 // tim gia cao nhat thu thoi diem ema10 cat ema89 ty duoi len den thoi diem sap xep theo thu tu
                                 for (var i = macdUnderCutSignalIdx; i < lastestEma10UnderEma89; i++) {
-                                    priceHighDatas.push(priceDatas[priceDatas.length - 1 - i].high)
+                                    priceHighDatas.push(priceDatas[priceDatas.length - 1 - i].close)
                                 }
 
                                 var highestTestPrice = Math.max(...priceHighDatas)
-                                // console.log(" highestTestPrice "+ highestTestPrice)
+
+                                
+                            
+                              //   console.log(" highestTestPrice "+ highestTestPrice)
                                 // tu luc macdunder cut se co 1 headfake
 
                                 var hasHeadFake = false
@@ -752,21 +757,29 @@ const findRetestFutureForBuy = async (priceDatas, coinName2, timeRequest) => {
                                         && (priceDatas[priceDatas.length - 1 - i].high > bbResult[bbResult.length - 1 - i].upper) // gia mo cua tren bb up
                                         && (priceDatas[priceDatas.length - 1 - (i + 1)].close > priceDatas[priceDatas.length - 1 - (i + 1)].open)
                                         && (priceDatas[priceDatas.length - 1 - (i + 2)].close > priceDatas[priceDatas.length - 1 - (i + 2)].open)
+                                        /// cai headfake phai nho hon highestTestPrice
                                     ) {
-                                        hasHeadFake = true;
-                                        candleHasHeadFakeIdx = i;
+                                        
+                                        if(priceDatas[priceDatas.length - 1 - i].high < highestTestPrice)
+                                        {
+                                            hasHeadFake = true;
+                                            candleHasHeadFakeIdx = i;
+                                        }
+                                        
                                     }
                                 }
 
 
                                 //  console.log("lastest4EmaIsAscendingOrder "+ lastest4EmaIsAscendingOrder 
-                                //  + " hasHeadFake  "+ hasHeadFake 
                                 //  + " macdUnderCutSignalIdx "+ macdUnderCutSignalIdx
+                                //  + " candleHasHeadFakeIdx " + candleHasHeadFakeIdx
+                                //  + " hasHeadFake  "+ hasHeadFake 
+                                //  + " headFakeprice  "+ priceDatas[priceDatas.length - 1 - candleHasHeadFakeIdx].high
                                 //  )
 
                                 // 
                                 // sau khi co headfake thi tim diem cay nen cat xuong duoi ema89
-                                if (hasHeadFake == true) {
+                                if (hasHeadFake == true ) {
 
                                     var hasCandleLowerEma89 = false
                                     var candleLowerEma89Idx = -1
@@ -796,8 +809,100 @@ const findRetestFutureForBuy = async (priceDatas, coinName2, timeRequest) => {
                                                 candleHigherAllEmxIdx = i
                                             }
                                         }
-                                        // sau cay nen  over kia phai co cay nen ma gia thap nhat phai nho hon ema50 hoac ema89
+                                        // tim 3 cay nen voi dieu kien 2 cay nen xanh lien tiep-> nen do->nen xanh
+                                        // 3 cay nen gan nhat dong cua > ema20
 
+                                        // 0 xanh, 1 do, 2 xanh, 3 xanh
+                                        var indexForBuy = -1;
+                                        for(var i =0; i < candleLowerEma89Idx; i++)
+                                        {
+                                            if((priceDatas[priceDatas.length - 1 - i].close >priceDatas[priceDatas.length - 1 - i].open )
+                                                && (priceDatas[priceDatas.length - 1 - (i+1)].close < priceDatas[priceDatas.length - 1 - (i+1)].open )
+                                                && (priceDatas[priceDatas.length - 1 - (i+2)].close > priceDatas[priceDatas.length - 1 - (i+2)].open )
+                                                && (priceDatas[priceDatas.length - 1 - (i+3)].close > priceDatas[priceDatas.length - 1 - (i+3)].open )
+
+                                                && (priceDatas[priceDatas.length - 1 - i].close > ema20[ema20.length - 1 - i])
+                                                && (priceDatas[priceDatas.length - 1 - (i+2)].close > ema20[ema20.length - 1 - (i+2)])
+                                                && (priceDatas[priceDatas.length - 1 - (i+3)].close > ema20[ema20.length - 1 - (i+3)])
+                                            )
+                                            {
+                                                indexForBuy = i;
+
+                                               // console.log(" ====== indexForBuy ====== "+ indexForBuy)
+                                            }
+                                        }
+
+                                        var indexForBuyCase2 = -1;
+                                        for(var i =0; i < candleLowerEma89Idx; i++)
+                                        {
+                                            // tim 4 cay nen voi dieu kien 2 cay nen xanh lien tiep-> 2 nen do->nen xanh
+                                            // nen xanh cuoi gia dong cua lon hon mua cua nen no trc do
+                                            // 4 cay nen gan nhat dong cua > ema20
+
+                                        // 0 xanh, 1 do, 2 xanh, 3 xanh
+                                            if((priceDatas[priceDatas.length - 1 - i].close >priceDatas[priceDatas.length - 1 - i].open )
+                                                && (priceDatas[priceDatas.length - 1 - (i+1)].close < priceDatas[priceDatas.length - 1 - (i+1)].open )
+                                                && (priceDatas[priceDatas.length - 1 - (i+2)].close < priceDatas[priceDatas.length - 1 - (i+2)].open )
+                                                && (priceDatas[priceDatas.length - 1 - (i+3)].close > priceDatas[priceDatas.length - 1 - (i+3)].open )
+                                                && (priceDatas[priceDatas.length - 1 - (i+4)].close > priceDatas[priceDatas.length - 1 - (i+3)].open )
+
+                                                && (priceDatas[priceDatas.length - 1 - i].close > ema20[ema20.length - 1 - i])
+                                                && (priceDatas[priceDatas.length - 1 - (i+2)].close > ema20[ema20.length - 1 - (i+2)])
+                                                && (priceDatas[priceDatas.length - 1 - (i+3)].close > ema20[ema20.length - 1 - (i+3)])
+                                                && (priceDatas[priceDatas.length - 1 - (i+4)].close > ema20[ema20.length - 1 - (i+4)])
+                                                // cay nen xanh cuoi dong cua lon hon do cuoi
+                                                && (priceDatas[priceDatas.length - 1 - i].close >priceDatas[priceDatas.length - 1 - (i+1)].open )
+                                            )
+                                            {
+                                                indexForBuyCase2 = i;
+
+                                               
+                                            }
+                                        }
+
+
+                                        if (indexForBuyCase2 > 0) {
+                                            console.log(coinName2 + "  " + timeRequest + "   buy case2   lastest4EmaIsAscendingOrder " + lastest4EmaIsAscendingOrder
+                                               
+                                                + " highest " + highestTestPrice
+                                                + " candleHasHeadFakeIdx  " + candleHasHeadFakeIdx
+                                                 + " price headfake" + priceDatas[priceDatas.length - 1 - candleHasHeadFakeIdx].close
+                                                + " price " + priceDatas[priceDatas.length - 1 - indexForBuy].close
+                                                + " indexForBuyCase2 " + indexForBuyCase2
+                                            )
+
+                                            if (indexForBuyCase2 < 4) {
+                                                bot.sendMessage(chatId, coinName2 + "  " + timeRequest + "  buy for retest  "
+                                                    
+                                                    + " pr " + priceDatas[priceDatas.length - 1 - indexForBuy].close
+                                                    + "indexForBuyCase2 "+  indexForBuyCase2
+                                                    )
+                                                bot.sendMessage(chatId, coinName2 + "_" + timeRequest + "_" + "buy")
+                                            }
+                                        }
+
+                                        if (indexForBuy > 0) {
+                                            console.log(coinName2 + "  " + timeRequest + "   buy case2   lastest4EmaIsAscendingOrder " + lastest4EmaIsAscendingOrder
+                                               
+                                                + " highest " + highestTestPrice
+                                                + " candleHasHeadFakeIdx  " + candleHasHeadFakeIdx
+                                                 + " price headfake" + priceDatas[priceDatas.length - 1 - candleHasHeadFakeIdx].close
+                                                + " price " + priceDatas[priceDatas.length - 1 - indexForBuy].close
+                                                + " indexForBuy " + indexForBuy
+                                            )
+
+                                            if (indexForBuy < 4) {
+                                                bot.sendMessage(chatId, coinName2 + "  " + timeRequest + "  buy for retest  "
+                                                    
+                                                    + " pr " + priceDatas[priceDatas.length - 1 - indexForBuy].close
+                                                    + "indexForBuy "+  indexForBuy
+                                                    )
+                                                bot.sendMessage(chatId, coinName2 + "_" + timeRequest + "_" + "buy")
+                                            }
+                                        }
+
+                                        // sau cay nen  over kia phai co cay nen ma gia thap nhat phai nho hon ema50 hoac ema89
+                                        return 0;
                                         var hasCanleLowerEma50 = false
                                         var candleLowerEma50Idx = -1
 
@@ -810,7 +915,9 @@ const findRetestFutureForBuy = async (priceDatas, coinName2, timeRequest) => {
                                             }
                                         }
 
-                                        if (hasCanleLowerEma50 == true) {
+                                      
+                                        if (hasCanleLowerEma50 == true)
+                                         {
                                             //sau khi co cay nen
                                             //  console.log("lastest4EmaIsAscendingOrder "+ lastest4EmaIsAscendingOrder + " candleLowerEma89Idx  "+ candleLowerEma89Idx + " "+ priceDatas[priceDatas.length-1-candleLowerEma89Idx].close)
                                             var indexForBuy = -1
@@ -834,6 +941,8 @@ const findRetestFutureForBuy = async (priceDatas, coinName2, timeRequest) => {
                                             if (indexForBuy > 0) {
                                                 console.log(coinName2 + "  " + timeRequest + "   buy case2   lastest4EmaIsAscendingOrder " + lastest4EmaIsAscendingOrder
                                                     + " indexForBuy " + indexForBuy
+                                                    + " highest " + highestTestPrice
+                                                    + " headFake  " + candleHasHeadFakeIdx + " " + priceDatas[priceDatas.length - 1 - candleHasHeadFakeIdx].close
                                                     + " price " + priceDatas[priceDatas.length - 1 - indexForBuy].close
                                                 )
 
@@ -857,7 +966,7 @@ const findRetestFutureForBuy = async (priceDatas, coinName2, timeRequest) => {
                                                         
                                                         + " pr " + priceDatas[priceDatas.length - 1 - indexForBuyWithEMa].close)
                                                     bot.sendMessage(chatId, coinName2 + "_" + timeRequest + "_" + "buy")
-                                                    bot.sendMessage(HaID, coinName2 + "_" + timeRequest + "_" + "buy")
+                                                   // bot.sendMessage(HaID, coinName2 + "_" + timeRequest + "_" + "buy")
                                                 }
                                             }
                                         }
@@ -1344,14 +1453,14 @@ const updatePrice = async (timeRequest) => {
             var coinName2 = pricesArr[coinIndex].toString();
             // var coinName2 = top20[coinIndex].symbol ;
             //  console.log("coinName  " + coinName2)
-            //   var coinName2 = "MOVRUSDT"
+             // var coinName2 = "IOSTUSDT"
 
             if (coinName2.includes("USDT") && (coinName2 != "COCOSUSDT") && (coinName2 != "BICOUSDT")) {
                 try {
                     var priceDatas = await client.futuresCandles({ symbol: coinName2, limit: 1000, interval: timeRequest })
 
                     var test15m = await findRetestFutureForBuy(priceDatas, coinName2, timeRequest)
-                    var test15m = await findRetestFutureForSell(priceDatas, coinName2, timeRequest)
+                 //   var test15m = await findRetestFutureForSell(priceDatas, coinName2, timeRequest)
                     //    var test15m = await findRetestFutureForSell(priceDatas, coinName2, timeRequest)
                     //     //await wait(200);
                     //  var test15m = await find3TimeRedFutureForBuy(priceDatas, coinName2, timeRequest)
@@ -1398,14 +1507,15 @@ const updatePrice = async (timeRequest) => {
 
         try {
 
-          
+            await updatePrice("5m");
+            await sync();
             await updatePrice("15m");
             await sync();
             await updatePrice("30m");
             await sync();
             await updatePrice("1h");
-            await sync();
-            await updatePrice("4h");
+            // await sync();
+            // await updatePrice("4h");
             
 
             if ((curentSymbolOrder != "") && (curentTimeOfSymbolOrder != "")) {
