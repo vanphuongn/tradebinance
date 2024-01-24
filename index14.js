@@ -642,7 +642,8 @@ const findRetestFutureForBuy = async (priceDatas, coinName2, timeRequest) => {
                         if (hasLowerEma89 == true
                             // && (priceDatas[priceDatas.length - 1 - "lastest4EmaIsAscendingOrder"].high > priceDatas[priceDatas.length - 1 - candleHasLowerEma89Idx].low)
                         ) {
-                            return;
+                            
+                            return 0;
                             // neu da co cay nen cham ema89
 
                             if (macdData2[macdData2.length - 1 - candleHasLowerEma89Idx].MACD < macdData2[macdData2.length - 1 - candleHasLowerEma89Idx].signal) {
@@ -743,8 +744,6 @@ const findRetestFutureForBuy = async (priceDatas, coinName2, timeRequest) => {
                                 }
 
                                 var highestTestPrice = Math.max(...priceHighDatas)
-
-
 
                                 //   console.log(" highestTestPrice "+ highestTestPrice)
                                 // tu luc macdunder cut se co 1 headfake
