@@ -505,7 +505,6 @@ const find3TimeRedFutureForBuy = async (priceDatas, coinName2, timeRequest) => {
 
 const findRetestFutureForBuy = async (priceDatas, coinName2, timeRequest) => {
 
-
     // bot_check_log.sendMessage(chatId, "coinname : " + coinName2 + "  timeRequest " + timeRequest)
     try {
         //  var priceDatas = await client.futuresCandles({ symbol: coinName2, limit: 1000, interval: timeRequest })
