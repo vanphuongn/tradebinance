@@ -539,7 +539,167 @@ function phuong_kc(priceDatas, m_period = 42, multiplier = 1, timeRequest = "15m
     };
 }
 
+const findCandle1DForBuy = async (coinName2, timeRequest) => {
+    // Kiem tra nen 1D
+    var priceDatas = await client.futuresCandles({ symbol: coinName2, limit: 1000, interval: timeRequest })
+
+    var openPrices = []
+    var closePrices = []
+
+    var last10Prices = []
+    var last5Prices = []
+
+    // console.log(" priceDatas[priceDatas.length-1].closeTime   "+ typeof( priceDatas[priceDatas.length-1].close));
+
+    // console.log(coinName2+ " priceDatas " +  "  timeRequest "+ timeRequest)
+    for (var i = 0; i < priceDatas.length; i++) {
+   //        console.log(coinName2+ "   "+i + "    priceDatas " + priceDatas[i].open)
+        closePrices.push(Number(priceDatas[i].close))
+        openPrices.push(Number(priceDatas[i].open))
+    }
+
+    var ema10 = EMA.calculate({ period: 10, values: closePrices })
+    var ema20 = EMA.calculate({ period: 20, values: closePrices })
+    var ema34 = EMA.calculate({ period: 34, values: closePrices })
+    var ema50 = EMA.calculate({ period: 50, values: closePrices })
+    var ema89 = EMA.calculate({ period: 89, values: closePrices })
+    var ema200 = EMA.calculate({ period: 200, values: closePrices })
+
+    var inputRsi = {
+        values: closePrices,
+        period: 14
+    }
+
+    var rsiValues = RSI.calculate(inputRsi)
+    // for(var i = 0; i < rsiValues.length;i++)
+    // {
+    //     console.log("i "+ rsiValues[i])
+    // }
+
+    var macdInput = {
+        values: closePrices,
+        fastPeriod: 12,
+        slowPeriod: 26,
+        signalPeriod: 9,
+        SimpleMAOscillator: false,
+        SimpleMASignal: false
+    }
+
+
+    var macdData2 = MACD.calculate(macdInput)
+
+    var bbInput = {
+        period: 20,
+        values: closePrices,
+        stdDev: 2
+    }
+    const bbResult = bb.calculate(bbInput)
+    var resultLength = bbResult.length
+
+    let kc_out = phuong_kc(priceDatas, 45, 1, timeRequest, coinName2);
+
+
+    var lastestEma10UnderEma89 = -1;
+    var lastestEma10UnderEma50 = -1;
+
+    var idxCheck = 0
+
+    for (var i = 0; i < ema10.length - 1; i++) {
+        if ((ema10[ema10.length - 1 - i] > ema89[ema89.length - 1 - i]) && (ema10[ema10.length - 1 - i - 1] < ema89[ema89.length - 1 - i - 1])) {
+            lastestEma10UnderEma89 = i;
+            //       console.log("pass 0    "+ lastestEma10UnderEma89)
+            break;
+        }
+    }
+
+    for (var i = 0; i < ema10.length - 1; i++) {
+        if ((ema10[ema10.length - 1 - i] > ema50[ema50.length - 1 - i]) && (ema10[ema10.length - 1 - i - 1] < ema50[ema50.length - 1 - i - 1])) {
+            lastestEma10UnderEma50 = i;
+            //       console.log("pass 0    "+ lastestEma10UnderEma89)
+            break;
+        }
+    }
+
+    if ((ema10[ema10.length - 1] > ema50[ema50.length - 1])
+        && (ema20[ema20.length - 1] > ema50[ema50.length - 1])
+        && (ema10[ema10.length - 1] > ema89[ema89.length - 1])
+        //     && (lastestEma10UnderEma50 > lastestEma10UnderEma89)
+    ) {
+        // console.log("Pass 0")
+
+        // thoi diem 4 cay nen sap xep theo thu tu
+        for (var i = 0; i < lastestEma10UnderEma89; i++) {
+            if ((ema10[ema10.length - 1 - i] > ema20[ema20.length - 1 - i])
+                && (ema20[ema20.length - 1 - i] > ema50[ema50.length - 1 - i])
+                && (ema10[ema10.length - 1 - i] > ema89[ema89.length - 1 - i])
+                && (ema20[ema20.length - 1 - i] > ema50[ema50.length - 1 - i])
+                && (ema50[ema50.length - 1 - i] > ema89[ema89.length - 1 - i])
+                && ((ema50[ema50.length - 1 - (i + 1)] < ema89[ema89.length - 1 - (i + 1)])
+                    //  && (ema50[ema50.length-1-i] > ema89[ema89.length-1-i])
+                    // && ((ema10[ema10.length-1-(i+1)] < ema20[ema20.length-1-(i+1)])
+                    //     || ((macdData2[(macdData2.length -1-i)].MACD > macdData2[(macdData2.length -1-i)].signal)
+                    //         && (macdData2[(macdData2.length -1-(i+1))].MACD < macdData2[(macdData2.length -1-(i+1))].signal)
+                    //         )
+                )
+            ) {
+                lastest4EmaIsAscendingOrder = i;
+                //       console.log("lastest4EmaIsAscendingOrder " + lastest4EmaIsAscendingOrder)
+                //   break;
+
+            }
+        }
+
+        if ((lastest4EmaIsAscendingOrder != -1) && (lastestEma10UnderEma89 != -1)) {
+            var hasLowerEma89 = false
+            var candleHasLowerEma89Idx = -1
+            //  var hasHeadFake = false
+            // var candleHasHeadFakeIdx = -1
+            var hasEma10OverCutEma20 = false
+            var candleEma10OverCutEma20Idx = false
+
+
+            var priceHighDatas = []
+            // check lower
+            for (var i = lastest4EmaIsAscendingOrder; i < lastestEma10UnderEma89; i++) {
+                //   for (var i = 0; i < lastest4EmaIsAscendingOrder; i++) {
+                if (priceDatas[priceDatas.length - 1 - i].low <= ema89[ema89.length - 1 - i]) {
+                    hasLowerEma89 = true;
+                    candleHasLowerEma89Idx = i
+
+                    //   console.log(coinName2 + "  " + timeRequest + "  candleHasLowerEma89Idx +   " + candleHasLowerEma89Idx)
+                    //    break;
+                }
+            }
+
+            if (hasLowerEma89 == true
+                // && (priceDatas[priceDatas.length - 1 - "lastest4EmaIsAscendingOrder"].high > priceDatas[priceDatas.length - 1 - candleHasLowerEma89Idx].low)
+            ) {
+            } else {
+                var hasCandleLowerEma89 = false
+                var candleLowerEma89Idx = -1
+                for (var i = 0; i < lastest4EmaIsAscendingOrder; i++) {
+                    if ((priceDatas[priceDatas.length - 1 - i].low <= ema89[ema89.length - 1 - i])
+                        // && (priceDatas[priceDatas.length - 1 - i].low < highestTestPrice) // cai cay < ema89 phai nho hon cai cay cao nhat trc khi test, de tranh da break len
+                    ) {
+                        hasCandleLowerEma89 = true
+                        candleLowerEma89Idx = i
+
+                        //   break;
+                    }
+                }
+
+                // console.log(coinName2+ " candleLowerEma89Idx " + candleLowerEma89Idx + " price " + priceDatas[priceDatas.length-1-candleLowerEma89Idx].close)
+                return candleLowerEma89Idx;
+            }
+
+        }
+    }
+
+    return -1;
+}
+
 const findRetestFutureForBuy = async (priceDatas, coinName2, timeRequest) => {
+
 
     // bot_check_log.sendMessage(chatId, "coinname : " + coinName2 + "  timeRequest " + timeRequest)
     try {
@@ -637,7 +797,7 @@ const findRetestFutureForBuy = async (priceDatas, coinName2, timeRequest) => {
             }
 
         }
-      //  return;
+        //  return;
         // console.log("lastestEma10UnderEma89 "+ lastestEma10UnderEma89+ "  lastestEma10UnderEma50 "+ lastestEma10UnderEma50)
         var lastest4EmaIsAscendingOrder = -1
 
@@ -1506,13 +1666,35 @@ const updatePrice = async (timeRequest) => {
             var coinName2 = pricesArr[coinIndex].toString();
             // var coinName2 = top20[coinIndex].symbol ;
             //  console.log("coinName  " + coinName2)
-            // var coinName2 = "IOSTUSDT"
+            //   var coinName2 = "LDOUSDT"
 
             if (coinName2.includes("USDT") && (coinName2 != "COCOSUSDT") && (coinName2 != "BICOUSDT")) {
                 try {
-                    var priceDatas = await client.futuresCandles({ symbol: coinName2, limit: 1000, interval: timeRequest })
+                    // var priceDatas = await client.futuresCandles({ symbol: coinName2, limit: 1000, interval: timeRequest })
+                    var check1D = await findCandle1DForBuy(coinName2, "1d");
+                    if (check1D != -1 && (check1D <15)) 
+                    {
+                        console.log(coinName2 + "  check1D " + check1D)
+                     //   var priceDatas = await client.futuresCandles({ symbol: coinName2, limit: 1000, interval: timeRequest })
+                     //   var test15m = await findRetestFutureForBuy(priceDatas, coinName2, timeRequest)
+                    }
+                    
 
-                    var test15m = await findRetestFutureForBuy(priceDatas, coinName2, timeRequest)
+                    var check12h = await findCandle1DForBuy(coinName2, "12h");
+                    if (check12h != -1 && (check12h <15)) 
+                    {
+                        console.log(coinName2 + "  check12h " + check12h)
+                        var priceDatas = await client.futuresCandles({ symbol: coinName2, limit: 1000, interval: timeRequest })
+                        var test15m = await findRetestFutureForBuy(priceDatas, coinName2, timeRequest)
+                    }
+                    var check4h = await findCandle1DForBuy(coinName2, "4h");
+                    if (check4h != -1 && (check4h <15)) 
+                    {
+                        console.log(coinName2 + "  check12h " + check4h)
+                        var priceDatas = await client.futuresCandles({ symbol: coinName2, limit: 1000, interval: timeRequest })
+                        var test15m = await findRetestFutureForBuy(priceDatas, coinName2, timeRequest)
+                    }
+                    // var test15m = await findCandle1DForBuy(priceDatas, coinName2, timeRequest)
                     //   var test15m = await findRetestFutureForSell(priceDatas, coinName2, timeRequest)
                     //    var test15m = await findRetestFutureForSell(priceDatas, coinName2, timeRequest)
                     //     //await wait(200);
@@ -1560,13 +1742,13 @@ const updatePrice = async (timeRequest) => {
 
         try {
 
-            // await updatePrice("5m");
-            // await sync();
+            await updatePrice("5m");
+            await sync();
             await updatePrice("15m");
             await sync();
             await updatePrice("30m");
-           await sync();
-           await updatePrice("1h");
+            await sync();
+            await updatePrice("1h");
             // await sync();
             // await updatePrice("4h");
 
