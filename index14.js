@@ -293,7 +293,7 @@ const findPhanKyFutureForBuy = async (priceDatas, coinName2, timeRequest) => {
 
         // console.log("lastestEma10UnderEma89 "+ lastestEma10UnderEma89+ "  lastestEma10UnderEma50 "+ lastestEma10UnderEma50)
         var lastest4EmaIsAscendingUpOrder = -1
-
+        
 
         if ((ema10[ema10.length - 1] > ema50[ema50.length - 1])
             && (ema20[ema20.length - 1] > ema50[ema50.length - 1])
@@ -360,13 +360,30 @@ const findPhanKyFutureForBuy = async (priceDatas, coinName2, timeRequest) => {
                                 //     && priceDatas[priceDatas.length - 1 - ema10OverCutIdxArr[ema10OverCutIdxArr.length - 2].close] > priceDatas[priceDatas.length - 1 - ema10OverCutIdxArr[ema10OverCutIdxArr.length - 3].close]
                                 // ) 
                                 {
-                                    if (lastest4EmaIsAscendingUpOrder < 5) {
-                                        bot.sendMessage(chatId, coinName2 + "  " + timeRequest + "  buy for retest  "
+                                    if (lastest4EmaIsAscendingUpOrder < 50) 
+                                    {
+                                        var indexForBuy = -1
+                                        for(var k =0; k < lastest4EmaIsAscendingUpOrder; k ++)
+                                        {
+                                            if((priceDatas[priceDatas.length-1-k].low < bbResult[bbResult.length-1-k].lower)
 
-                                        + " pr " + priceDatas[priceDatas.length - 1 - lastest4EmaIsAscendingUpOrder].close
+                                            && (priceDatas[priceDatas.length-1-k].low < ema50[ema50.length-1-k])
+                                            )
+                                            {
+                                                indexForBuy = k;
+                                            }
+                                        }
+                                        if( (indexForBuy <5) && (indexForBuy >0))
+                                        {
+                                            bot.sendMessage(chatId, coinName2 + "  " + timeRequest + "  buy for retest  "
+                                            + " pr " + priceDatas[priceDatas.length - 1 - indexForBuy].close)
+
+                                        }
                                        
-                                    )
-                                        console.log(coinName2 + " lastest4EmaIsAscendingOrder " + lastest4EmaIsAscendingUpOrder + "  numEma10OverCutEma89  " + numEma10OverCutEma89 + "   price " + priceDatas[priceDatas.length - 1 - lastest4EmaIsAscendingUpOrder].close + "  " + timeRequest)
+                                        if(indexForBuy > 0)
+                                        {
+                                        console.log(coinName2 + " indexForBuy " + indexForBuy + "  numEma10OverCutEma89  " + numEma10OverCutEma89 + "   price " + priceDatas[priceDatas.length - 1 - indexForBuy].close + "  " + timeRequest)
+                                        }
                                     }
                                 }
 
@@ -374,6 +391,7 @@ const findPhanKyFutureForBuy = async (priceDatas, coinName2, timeRequest) => {
                             break;
                         }
                         lastest4EmaIsAscendingUpOrder = i;
+
                         // console.log( " lastest4EmaIsAscendingOrder "+ i +" Ema10 " + ema10[ema10.length-1-lastest4EmaIsAscendingOrder] + " ema20 "+ ema20[ema20.length-1-lastest4EmaIsAscendingOrder] + " ema50 " + ema50[ema50.length-1-lastest4EmaIsAscendingOrder] + " ema89 "+ ema89[ema89.length-1-lastest4EmaIsAscendingOrder] 
                         // )
 
