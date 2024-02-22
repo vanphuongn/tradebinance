@@ -271,15 +271,36 @@ const find3TimeRedFutureForBuy = async (coinName2, timeRequest) => {
             }
         }
 
+        var ema10CutEma50InUnderEma89 = -1
         for (var i = idxCheck; i < ema10.length - 1; i++) {
             if ((ema10[ema10.length - 1 - i] > ema50[ema50.length - 1 - i]) && (ema10[ema10.length - 1 - i - 1] < ema50[ema50.length - 1 - i - 1])) {
                 lastestEma10UnderEma50 = i;
                 if (lastestEma10UnderEma50 > lastestEma10UnderEma89) {
+                    ema10CutEma50InUnderEma89 = i;
                     //      console.log("pass 0    " + lastestEma10UnderEma50)
                     break;
                 }
             }
         }
+
+        var last2Time4EmaIsAscendingOrder =-1
+        for(var i = ema10CutEma50InUnderEma89; i < ema10.length;i++)
+        {
+            if((ema10[ema10.length-1-i]> ema20[ema20.length-1-i])
+            && (ema20[ema20.length-1-i]> ema50[ema50.length-1-i])
+             && (ema50[ema50.length-1-i]> ema89[ema89.length-1-i])
+            )
+            {
+                last2Time4EmaIsAscendingOrder = i;
+                break;
+            }
+        }
+
+        // cach giao dich
+        // tu cay nen cao nhat khi 4 duong ema sap xep theo thu tu
+        // doi khi
+        // co headfake
+        // sau do co cay nen enguffing thi vao lenh
 
         var lastest4EmaIsAscendingOrder = -1
         //  for (var idx = idxCheck; idx < ema10.length; idx++)
@@ -312,8 +333,14 @@ const find3TimeRedFutureForBuy = async (coinName2, timeRequest) => {
                     }
                 }
 
-                // console.log("lastest4EmaIsAscendingOrder " + lastest4EmaIsAscendingOrder)
-                if ((lastest4EmaIsAscendingOrder != -1) && (lastestEma10UnderEma89 != -1)) {
+                
+
+                // console.log("lastest4EmaIsAscendingOrder " + lastest4EmaIsAscendingOrder
+                // + " last2Time4EmaIsAscendingOrder  "+ last2Time4EmaIsAscendingOrder
+                // )
+                if ((lastest4EmaIsAscendingOrder != -1) && (lastestEma10UnderEma89 != -1)
+                &&  (priceDatas[priceDatas.length-1-last2Time4EmaIsAscendingOrder].close > priceDatas[priceDatas.length-1-lastest4EmaIsAscendingOrder].close)
+                ) {
                     var hasLowerEma89 = false
                     var candleHasLowerEma89Idx = -1
                     var hasHeadFake = false
@@ -328,7 +355,7 @@ const find3TimeRedFutureForBuy = async (coinName2, timeRequest) => {
                         }
 
                     }
-                    //   console.log("candleHasLowerEma89Idx "+ candleHasLowerEma89Idx)
+                //    console.log("candleHasLowerEma89Idx "+ candleHasLowerEma89Idx)
                     if (hasLowerEma89 == true) {
                         // check xem co headfake chua
                         for (var i = 0; i < candleHasLowerEma89Idx - 1; i++) {
@@ -337,10 +364,11 @@ const find3TimeRedFutureForBuy = async (coinName2, timeRequest) => {
                             try {
                                 // console.log(" i "+ i + "  "+ priceDatas[priceDatas.length - 1 - i].close)
                                 if ((priceDatas[priceDatas.length - 1 - i].close < priceDatas[priceDatas.length - 1 - i].open)
-                                    && (priceDatas[priceDatas.length - 1 - (i + 1)].high > bbResult[resultLength - 1 - (i + 1)].upper)) {
+                                    && (priceDatas[priceDatas.length - 1 - (i + 1)].high > ema10[ema10.length-1-(i+1)]))//bbResult[resultLength - 1 - (i + 1)].upper)) 
+                                {
                                     hasHeadFake = true;
                                     candleHasHeadFakeIdx = i;
-                                    //  console.log("hasHeadFake + candleHasHeadFakeIdx  " + candleHasHeadFakeIdx)
+                                  
                                     //  break;
                                 }
                             } catch (err) {
@@ -348,12 +376,13 @@ const find3TimeRedFutureForBuy = async (coinName2, timeRequest) => {
                                 console.log("err 222  " + err + "  i  " + i + "\n");
                             }
                         }
-
+                     //   console.log("hasHeadFake + candleHasHeadFakeIdx  " + candleHasHeadFakeIdx)
                         var idexForBuy = -1
                         var hasEnguffing = false
                         var enguffingCandleIndex = -1
                         // doi cay nen xanh bat len tren cay nen do
                         for (var i = idxCheck; i < candleHasHeadFakeIdx; i++) {
+
                             var twoCandleBullishInput = {
                                 open: [priceDatas[priceDatas.length - 1 - (i + 1)].open, priceDatas[priceDatas.length - 1 - (i)].open],
                                 high: [priceDatas[priceDatas.length - 1 - (i + 1)].high, priceDatas[priceDatas.length - 1 - (i)].high],
@@ -361,16 +390,29 @@ const find3TimeRedFutureForBuy = async (coinName2, timeRequest) => {
                                 low: [priceDatas[priceDatas.length - 1 - (i + 1)].low, priceDatas[priceDatas.length - 1 - (i)].low],
                             }
 
-                            var result = bullishengulfingpattern(twoCandleBullishInput);
+                            var result = false;// bullishengulfingpattern(twoCandleBullishInput);
+
+                            if((priceDatas[priceDatas.length-1-i].close > priceDatas[priceDatas.length-1-i].open)
+                            && (priceDatas[priceDatas.length-1-(i+1)].close < priceDatas[priceDatas.length-1-(i+1)].open)
+                            && (priceDatas[priceDatas.length-1-(i+2)].close < priceDatas[priceDatas.length-1-(i+2)].open)
+                            && (priceDatas[priceDatas.length-1-i].close > priceDatas[priceDatas.length-1-(i+2)].open)
+                         && (priceDatas[priceDatas.length-1-(i+1)].low < ema50[ema50.length-1-(i+1)])
+                            )
+                            {
+                                result = true;
+                            }
+
                             if (result == true) {
-                                if (priceDatas[priceDatas.length - 1 - (i + 1)].low <= ema50[ema50.length - 1 - i]) {
+                               if (priceDatas[priceDatas.length - 1 - (i + 1)].low <= ema20[ema20.length - 1 - (i+1)])
+                                 {
                                     enguffingCandleIndex = i;
+                                  //  console.log("price enguffing "+ priceDatas[priceDatas.length-1-enguffingCandleIndex].close)
                                     hasEnguffing = true;
                                 }
                             }
                         }
                         if (hasEnguffing == true) {
-                            if(enguffingCandleIndex < 3)// && enguffingCandleIndex >0)
+                            if(enguffingCandleIndex <= 3)// && enguffingCandleIndex >0)
                             {
                                 bot.sendMessage(chatId,coinName2 + "  " + timeRequest + " idx buy " + enguffingCandleIndex);
                             }
@@ -409,7 +451,7 @@ const updatePrice = async (timeRequest) => {
             var coinName2 = pricesArr[coinIndex].toString();
             // var coinName2 = top20[coinIndex].symbol ;
             //  console.log("coinName  " + coinName2)
-            // var coinName2 = "ONDOUSDT"
+            // var coinName2 = "CHRUSDT"
 
             if (coinName2.includes("USDT") && (coinName2 != "COCOSUSDT") && (coinName2 != "BICOUSDT")) {
                 try {
@@ -441,7 +483,7 @@ const updatePrice = async (timeRequest) => {
     let buySuccess = null;
 
     //	await updateEMA();
-    //bot.sendMessage(chatId," =============Start 1 vong requets ======" );
+    bot.sendMessage(chatId," =============Start 1 vong requets ======" );
     while (true) {
         log_str = "";
         //	bot.sendMessage(chatId," =============Start 1 vong requets ======" );
@@ -456,6 +498,7 @@ const updatePrice = async (timeRequest) => {
 
         try {
 
+           
             await updatePrice("5m");
             await sync();
             await updatePrice("15m");
@@ -465,8 +508,9 @@ const updatePrice = async (timeRequest) => {
             //
             await updatePrice("1h");
             await sync();
-            // await updatePrice("4h");
-            // await sync();
+            await updatePrice("4h");
+            await sync();
+          
            
 
             // if (curentSymbolOrder != "") {
