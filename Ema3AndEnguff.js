@@ -370,7 +370,7 @@ const find3TimeRedFutureForBuy = async (coinName2, timeRequest) => {
                             }
                         }
                         if (hasEnguffing == true) {
-                            if(enguffingCandleIndex < 3)
+                            if(enguffingCandleIndex < 3)// && enguffingCandleIndex >0)
                             {
                                 bot.sendMessage(chatId,coinName2 + "  " + timeRequest + " idx buy " + enguffingCandleIndex);
                             }
@@ -456,12 +456,18 @@ const updatePrice = async (timeRequest) => {
 
         try {
 
-
+            await updatePrice("5m");
+            await sync();
             await updatePrice("15m");
             await sync();
             await updatePrice("30m");
             await sync();
-            //    await updatePrice("1h");
+            //
+            await updatePrice("1h");
+            await sync();
+            // await updatePrice("4h");
+            // await sync();
+           
 
             // if (curentSymbolOrder != "") {
             //     checkTp(curentSymbolOrder, curentTimeOfSymbolOrder, curentCommandTypeOfSymbolOrder);
