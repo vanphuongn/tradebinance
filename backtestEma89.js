@@ -503,7 +503,7 @@ const find3TimeRedFutureForBuy = async (priceDatas, coinName2, timeRequest) => {
 
 }
 
-const findPhanKyForSell = async (priceDatas, coinName2, timeRequest, higherTimeRequest) => {
+const findRetestFutureForBuy = async (priceDatas, coinName2, timeRequest) => {
 
 
     // bot_check_log.sendMessage(chatId, "coinname : " + coinName2 + "  timeRequest " + timeRequest)
@@ -561,293 +561,37 @@ const findPhanKyForSell = async (priceDatas, coinName2, timeRequest, higherTimeR
         }
         const bbResult = bb.calculate(bbInput)
         var resultLength = bbResult.length
-        var lastestEma10OverCutEma89 = -1;
-        var lastestEma10OverCutEma50 = -1;
-        var lastestEma10OverCutEma20 = -1;
+        var lastestEma10UnderEma89 = -1;
+        var lastestEma10UnderEma50 = -1;
 
         var idxCheck = 0
 
-        for (var i = idxCheck; i < ema10.length - 1; i++) {
+        for (var i = 0; i < ema10.length - 1; i++) {
             if ((ema10[ema10.length - 1 - i] > ema89[ema89.length - 1 - i]) && (ema10[ema10.length - 1 - i - 1] < ema89[ema89.length - 1 - i - 1])) {
-                lastestEma10OverCutEma89 = i;
+                lastestEma10UnderEma89 = i;
                 //       console.log("pass 0    "+ lastestEma10UnderEma89)
                 break;
             }
         }
 
-        for (var i = idxCheck; i < ema10.length - 1; i++) {
+        for (var i = 0; i < ema10.length - 1; i++) {
             if ((ema10[ema10.length - 1 - i] > ema50[ema50.length - 1 - i]) && (ema10[ema10.length - 1 - i - 1] < ema50[ema50.length - 1 - i - 1])) {
-                lastestEma10OverCutEma50 = i;
+                lastestEma10UnderEma50 = i;
                 //       console.log("pass 0    "+ lastestEma10UnderEma89)
                 break;
             }
         }
 
-        for (var i = idxCheck; i < ema10.length - 1; i++) {
-            if ((ema10[ema10.length - 1 - i] > ema20[ema20.length - 1 - i]) && (ema10[ema10.length - 1 - i - 1] < ema20[ema20.length - 1 - i - 1])) {
-                lastestEma10OverCutEma20 = i;
-                //       console.log("pass 0    "+ lastestEma10UnderEma89)
-                break;
-            }
-        }
+        // console.log("lastestEma10UnderEma89 "+ lastestEma10UnderEma89+ "  lastestEma10UnderEma50 "+ lastestEma10UnderEma50)
+        var lastest4EmaIsAscendingOrder = -1
 
-        // check cay nen to, tim thoi diem ema10 cat ema20 tu tren xuong
-        // dam bao ema10 > ema20, ema20 > ema50; ema50 > ema89
-        var idxEma10UnderCutEma20 = -1;
-        for (var i = idxCheck; i < ema10.length - 1; i++) {
-            if ((ema10[ema10.length - 1 - i] < ema20[ema20.length - 1 - i])
-                && (ema10[ema10.length - 1 - (i + 1)] > ema20[ema20.length - 1 - (i + 1)])
-                && (ema20[ema20.length - 1 - i] > ema50[ema50.length - 1 - i])
-                && (ema50[ema50.length - 1 - i] > ema89[ema89.length - 1 - i])
-            ) {
-                // kiem tra cay nen con trc do co phan ky hay ko
-                // neu nen con phan ky thi moi gan idxEma10UnderCutEma89 = i
-
-                idxEma10UnderCutEma20 = i;
-
-
-                var lastEma10OverCutEma20 = -1
-
-
-                for (var j = idxEma10UnderCutEma20; j < ema10.length; j++) {
-                    if ((ema10[ema10.length - 1 - j] > ema20[ema20.length - 1 - j])
-                        && (ema10[ema10.length - 1 - (j + 1)] < ema20[ema20.length - 1 - (j + 1)])
-                    ) {
-                        lastEma10OverCutEma20 = j
-                        break;
-                    }
-                }
-
-                var lastestEma10OverCutEma89 = -1;
-
-                for (var j = idxEma10UnderCutEma20; j < ema10.length; j++) {
-
-                    if ((ema10[ema10.length - 1 - j] > ema89[ema89.length - 1 - j])
-                        && (ema10[ema10.length - 1 - (j + 1)] < ema89[ema89.length - 1 - (j + 1)])
-                    ) {
-                        lastestEma10OverCutEma89 = j
-                        // console.log("idxEma10UnderCutEma20 "+ idxEma10UnderCutEma20)
-                        break;
-                    }
-                }
-                //  console.log("idxEma10UnderCutEma20 "+ idxEma10UnderCutEma20+  " lastestEma10OverCutEma89 "+ lastestEma10OverCutEma89)
-
-
-                var pricesFromlastEma10OverCutEma20_To_Ema10UnderCutEma20Arr = []
-                var maxPriceFormlastEma10OverCutEma20_To_Ema10UnderCutEma20 = -1
-
-
-                for (var j = idxEma10UnderCutEma20; j < lastEma10OverCutEma20; j++) {
-                    pricesFromlastEma10OverCutEma20_To_Ema10UnderCutEma20Arr.push(priceDatas[priceDatas.length - 1 - j].close);
-                }
-                maxPriceFormlastEma10OverCutEma20_To_Ema10UnderCutEma20 = Math.max(...pricesFromlastEma10OverCutEma20_To_Ema10UnderCutEma20Arr)
-                var indexOfMaxPriceFormlastEma10OverCutEma20_To_Ema10UnderCutEma20 = -1;
-
-
-                for (var j = idxEma10UnderCutEma20; j < lastEma10OverCutEma20; j++) {
-                    if (priceDatas[priceDatas.length - 1 - j].close == maxPriceFormlastEma10OverCutEma20_To_Ema10UnderCutEma20) {
-                        indexOfMaxPriceFormlastEma10OverCutEma20_To_Ema10UnderCutEma20 = j;
-                        // console.log(
-                        //     "price max0 " + maxPriceFormlastEma10OverCutEma20_To_Ema10UnderCutEma20 +
-                        //     "idxmax0 " + indexOfMaxPriceFormlastEma10OverCutEma20_To_Ema10UnderCutEma20)
-                    }
-
-                }
-
-                var pricesFromlastEma10OverCutEma89_To_Ema10OverCutEma20Arr = []
-                var maxPriceFormlastEma10OverCutEma20_To_Ema10OverCutEma89 = -1
-                for (var j = lastEma10OverCutEma20; j < lastestEma10OverCutEma89; j++) {
-                    pricesFromlastEma10OverCutEma89_To_Ema10OverCutEma20Arr.push(priceDatas[priceDatas.length - 1 - j].close);
-                }
-                //   console.log("price max1 "+ maxPriceFormlastEma10OverCutEma20_To_Ema10OverCutEma89)
-
-
-                maxPriceFormlastEma10OverCutEma20_To_Ema10OverCutEma89 = Math.max(...pricesFromlastEma10OverCutEma89_To_Ema10OverCutEma20Arr)
-
-                var indexOfMaxPriceFormlastEma10OverCutEma20_To_Ema10OverCutEma89 = -1;
-
-                for (var j = lastEma10OverCutEma20; j < lastestEma10OverCutEma89; j++) {
-                    if (priceDatas[priceDatas.length - 1 - j].close == maxPriceFormlastEma10OverCutEma20_To_Ema10OverCutEma89) {
-                        indexOfMaxPriceFormlastEma10OverCutEma20_To_Ema10OverCutEma89 = j;
-                        // console.log(
-                        //     "price max1 " + maxPriceFormlastEma10OverCutEma20_To_Ema10OverCutEma89 +
-                        //     "idxMax1 " + indexOfMaxPriceFormlastEma10OverCutEma20_To_Ema10OverCutEma89)
-                    }
-
-                }
-
-                if (indexOfMaxPriceFormlastEma10OverCutEma20_To_Ema10UnderCutEma20 < 200) {
-                    if ((maxPriceFormlastEma10OverCutEma20_To_Ema10UnderCutEma20 > maxPriceFormlastEma10OverCutEma20_To_Ema10OverCutEma89)
-                        && (macdData2[macdData2.length - 1 - indexOfMaxPriceFormlastEma10OverCutEma20_To_Ema10UnderCutEma20].MACD < macdData2[macdData2.length - 1 - indexOfMaxPriceFormlastEma10OverCutEma20_To_Ema10OverCutEma89].MACD)
-                    ) {
-
-                        try {
-                            console.log(coinName2 + " "+ timeRequest+ " Phanky " + idxEma10UnderCutEma20
-                                + " macd0 " + macdData2[macdData2.length - 1 - indexOfMaxPriceFormlastEma10OverCutEma20_To_Ema10UnderCutEma20].MACD
-                                + " macd " + + macdData2[macdData2.length - 1 - indexOfMaxPriceFormlastEma10OverCutEma20_To_Ema10OverCutEma89].MACD)
-
-                            
-                        } catch (error) {
-                            console.log(coinName2 + " errorxxx " + error + "  ")
-                        }
-                        if (timeRequest == "5m") {
-                  
-                            checkHigherTimeForSell(coinName2, "5m", timeRequest)
-                            await sync()
-                            let idxHigherTime = Math.floor(i / 3);
-                            checkHigherTimeForSell(coinName2, "15m", idxHigherTime)
-                        }
-                        else if (timeRequest == "15m") {
-                            await sync()
-                            checkHigherTimeForSell(coinName2, "15m", timeRequest)
-                            await sync()
-                            let idxHigherTime = Math.floor(i / 4);
-                            checkHigherTimeForSell(coinName2, "1h", idxHigherTime)
-                            await sync()
-                            let idxHigherTime2 = Math.floor(i / 2);
-                            checkHigherTimeForSell(coinName2, "30m", idxHigherTime2)
-                        }
-
-                        return i;
-                        break;
-
-                    }
-                }
-                return -1;
-
-            }
-        }
-
-
-
+       
     } catch (e) {
-        //  console.log("error 2 " + e + " " + coinName2)
+        console.log("error 2 " + e + " " + coinName2)
     }
 
 }
 
-const checkHigherTimeForSell = async (coinName2, timeRequest, indexPK) => {
-
-    var priceDatas = await client.futuresCandles({ symbol: coinName2, limit: 1000, interval: timeRequest })
-    var openPrices = []
-    var closePrices = []
-
-    var last10Prices = []
-    var last5Prices = []
-
-    // console.log(" priceDatas[priceDatas.length-1].closeTime   "+ typeof( priceDatas[priceDatas.length-1].close));
-
-    // console.log(coinName2+ " priceDatas " +  "  timeRequest "+ timeRequest)
-    for (var i = 0; i < priceDatas.length; i++) {
-        //   console.log(coinName2+ "   "+i + "    priceDatas " + priceDatas[i].open)
-        closePrices.push(Number(priceDatas[i].close))
-        openPrices.push(Number(priceDatas[i].open))
-    }
-
-    var ema10 = EMA.calculate({ period: 10, values: closePrices })
-    var ema20 = EMA.calculate({ period: 20, values: closePrices })
-    var ema34 = EMA.calculate({ period: 34, values: closePrices })
-    var ema50 = EMA.calculate({ period: 50, values: closePrices })
-    var ema89 = EMA.calculate({ period: 89, values: closePrices })
-    var ema200 = EMA.calculate({ period: 200, values: closePrices })
-
-    var inputRsi = {
-        values: closePrices,
-        period: 14
-    }
-
-    var rsiValues = RSI.calculate(inputRsi)
-    // for(var i = 0; i < rsiValues.length;i++)
-    // {
-    //     console.log("i "+ rsiValues[i])
-    // }
-
-    var macdInput = {
-        values: closePrices,
-        fastPeriod: 12,
-        slowPeriod: 26,
-        signalPeriod: 9,
-        SimpleMAOscillator: false,
-        SimpleMASignal: false
-    }
-
-
-    var macdData2 = MACD.calculate(macdInput)
-
-    if ((ema10[ema10.length - 1 - indexPK] > ema20[ema20.length - 1 - indexPK])
-        && (ema20[ema20.length - 1 - indexPK] > ema50[ema50.length - 1 - indexPK])
-        && (ema50[ema50.length - 1 - indexPK] > ema89[ema89.length - 1 - indexPK])
-    ) {
-        var ema10UnderCutEma20Idx = -1
-        for (var i = 0; i < indexPK; i++) {
-            if ((ema10[ema10.length - 1 - i] < ema20[ema20.length - 1 - i])
-                && (ema10[ema10.length - 1 - (i + 1)] > ema20[ema20.length - 1 - (i + 1)])
-            ) {
-                ema10UnderCutEma20Idx = i;
-
-            }
-        }
-        //  console.log("ema10UnderCutEma20Idx "+ ema10UnderCutEma20Idx + " indexPK "+ indexPK)
-        if (ema10UnderCutEma20Idx != -1) {
-
-            var indexForSell = -1;
-            for (var i = 0; i < ema10UnderCutEma20Idx; i++) {
-                if (priceDatas[priceDatas.length - 1 - i].high > ema10[ema10.length - 1 - i]
-                    && (priceDatas[priceDatas.length - 1 - i].close < priceDatas[priceDatas.length - 1 - i].open)
-                ) {
-                    indexForSell = i;
-                }
-            }
-
-
-            if (indexForSell != -1) {
-                var hasCandleUnderEma50 = false;
-                for (var i = indexForSell; i < ema10UnderCutEma20Idx; i++) {
-                    if (priceDatas[priceDatas.length - 1 - i].low < ema50[ema50.length - 1 - i]) {
-                        hasCandleUnderEma50 = true;
-                    }
-                }
-                if (hasCandleUnderEma50 == false) {
-
-                    // // check ca nen 4h
-                    // var price4hDatas = await client.futuresCandles({ symbol: coinName2, limit: 1000, interval: "4h" })
-                    // var close4hPrices = []
-                    // var last10Prices = []
-                    // var last5Prices = []
-            
-                    // console.log(" priceDatas[priceDatas.length-1].closeTime   "+ typeof( priceDatas[priceDatas.length-1].close));
-            
-                    // console.log(coinName2+ " priceDatas " +  "  timeRequest "+ timeRequest)
-                    // for (var i = 0; i < price4hDatas.length; i++) {
-                    //     //   console.log(coinName2+ "   "+i + "    priceDatas " + priceDatas[i].open)
-                    //     close4hPrices.push(Number(priceDatas[i].close))
-                       
-                    // }
-            
-                    // var ema10_4h = EMA.calculate({ period: 10, values: closePrices })
-                
-                    // var ema89_4h = EMA.calculate({ period: 89, values: closePrices })
-                   
-
-                  //  if(ema10_4h[ema10_4h.length])
-
-                    var tp = ((priceDatas[priceDatas.length - 1 - indexForSell].close / ema89[ema89.length - 1 - indexForSell]) - 1) * 100
-                    // if(indexForSell < 4)
-                    // {
-                    //     bot.sendMessage(chatId, coinName2 + " indxSell " + indexForSell + "  timeRequest "  + " %tp " + tp
-                    //     + " tp " + ema89[ema89.length - 1 - indexForSell])
-                    // }
-                    console.log("========== " + coinName2 + " indxSell " + indexForSell + "  timeRequest " + timeRequest
-                        + " %tp " + tp
-                        + " tp " + ema89[ema89.length - 1 - indexForSell]
-                    )
-                }
-
-            }
-        }
-    }
-
-}
 const findRetestFutureForSell = async (priceDatas, coinName2, timeRequest) => {
 
 
@@ -1299,16 +1043,13 @@ const updatePrice = async (timeRequest) => {
             var coinName2 = pricesArr[coinIndex].toString();
             // var coinName2 = top20[coinIndex].symbol ;
             //  console.log("coinName  " + coinName2)
-            //   var coinName2 = "WIFUSDT"
+            // var coinName2 = "IOSTUSDT"
 
             if (coinName2.includes("USDT") && (coinName2 != "COCOSUSDT") && (coinName2 != "BICOUSDT")) {
                 try {
-
-                   
-            
                     var priceDatas = await client.futuresCandles({ symbol: coinName2, limit: 1000, interval: timeRequest })
 
-                    var test15m = await findPhanKyForSell(priceDatas, coinName2, timeRequest)
+                    var test15m = await findRetestFutureForBuy(priceDatas, coinName2, timeRequest)
                     //   var test15m = await findRetestFutureForSell(priceDatas, coinName2, timeRequest)
                     //    var test15m = await findRetestFutureForSell(priceDatas, coinName2, timeRequest)
                     //     //await wait(200);
@@ -1354,18 +1095,15 @@ const updatePrice = async (timeRequest) => {
             process.exit(-1);
         }
 
-
         try {
-        
-
 
             await updatePrice("5m");
             await sync();
             await updatePrice("15m");
             await sync();
-            // await updatePrice("30m");
-            // await sync();
-            // await updatePrice("1h");
+            await updatePrice("30m");
+            await sync();
+            await updatePrice("1h");
             // await sync();
             // await updatePrice("4h");
 

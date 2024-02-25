@@ -21,10 +21,8 @@ const tweezerbottom = require('technicalindicators').tweezerbottom;
 var RSI = require('technicalindicators').RSI;
 var bb = require('technicalindicators').BollingerBands;
 
-var express = require('express');
-var app = express();
-const WebSocketClient = require('ws')
-app.set('port', (process.env.PORT || 5000));
+
+
 
 //For avoidong Heroku $PORT error
 //const token = '1677444880:AAHC0UgHkuf0Y7NqsubVJSN4Q0WpPfFOYb8';
@@ -67,13 +65,7 @@ const client = new Binance({
 
 var log_str = "";
 
-app.get('/', function (request, response) {
-    var result = 'App is running \n';
-    response.send(result + log_str);
 
-}).listen(app.get('port'), function () {
-    console.log('App is running, server is listening on port ', app.get('port'));
-});
 
 
 // VARIABLES - Binance API
@@ -283,14 +275,12 @@ const find3TimeRedFutureForBuy = async (coinName2, timeRequest) => {
             }
         }
 
-        var last2Time4EmaIsAscendingOrder =-1
-        for(var i = ema10CutEma50InUnderEma89; i < ema10.length;i++)
-        {
-            if((ema10[ema10.length-1-i]> ema20[ema20.length-1-i])
-            && (ema20[ema20.length-1-i]> ema50[ema50.length-1-i])
-             && (ema50[ema50.length-1-i]> ema89[ema89.length-1-i])
-            )
-            {
+        var last2Time4EmaIsAscendingOrder = -1
+        for (var i = ema10CutEma50InUnderEma89; i < ema10.length; i++) {
+            if ((ema10[ema10.length - 1 - i] > ema20[ema20.length - 1 - i])
+                && (ema20[ema20.length - 1 - i] > ema50[ema50.length - 1 - i])
+                && (ema50[ema50.length - 1 - i] > ema89[ema89.length - 1 - i])
+            ) {
                 last2Time4EmaIsAscendingOrder = i;
                 break;
             }
@@ -333,90 +323,122 @@ const find3TimeRedFutureForBuy = async (coinName2, timeRequest) => {
                     }
                 }
 
-                
+
 
                 // console.log("lastest4EmaIsAscendingOrder " + lastest4EmaIsAscendingOrder
                 // + " last2Time4EmaIsAscendingOrder  "+ last2Time4EmaIsAscendingOrder
                 // )
                 if ((lastest4EmaIsAscendingOrder != -1) && (lastestEma10UnderEma89 != -1)
-                &&  (priceDatas[priceDatas.length-1-last2Time4EmaIsAscendingOrder].close > priceDatas[priceDatas.length-1-lastest4EmaIsAscendingOrder].close)
+                    && (priceDatas[priceDatas.length - 1 - last2Time4EmaIsAscendingOrder].close > priceDatas[priceDatas.length - 1 - lastest4EmaIsAscendingOrder].close)
                 ) {
                     var hasLowerEma89 = false
                     var candleHasLowerEma89Idx = -1
                     var hasHeadFake = false
                     var candleHasHeadFakeIdx = -1
+                    var candleHasLowerEma89IdxArr = []
                     // check lower
                     for (var i = 0; i < lastest4EmaIsAscendingOrder; i++) {
 
-                        if (priceDatas[priceDatas.length - 1 - i].low < ema89[ema89.length - 1 - i]) {
+                        if ((priceDatas[priceDatas.length - 1 - i].low < ema89[ema89.length - 1 - i])
+                            && (ema10[ema10.length - 1 - i] < ema20[ema20.length - 1 - i])
+                        ) {
                             hasLowerEma89 = true;
-                            candleHasLowerEma89Idx = i
-                            //  break;
+                            // cay nen nay la cay nen thap nhat
+                            // thi nen i co low nho hon low trc, va nho hon low sau
+                            if((priceDatas[priceDatas.length-1-i].low < priceDatas[priceDatas.length-1-(i+1)].low )
+                            && (priceDatas[priceDatas.length-1-i].low < priceDatas[priceDatas.length-1-(i-1)].low )
+                            )
+                            {
+                             candleHasLowerEma89IdxArr.push(i)
+                            }
+                            //    candleHasLowerEma89Idx = i
+                            //   break;
                         }
 
                     }
-                //    console.log("candleHasLowerEma89Idx "+ candleHasLowerEma89Idx)
-                    if (hasLowerEma89 == true) {
-                        // check xem co headfake chua
-                        for (var i = 0; i < candleHasLowerEma89Idx - 1; i++) {
-                            // cay nen hien tai la cay nen do
-                            // cay nen trc do co rau nen gia cao nhat lon hon bb thi la headfake
-                            try {
-                                // console.log(" i "+ i + "  "+ priceDatas[priceDatas.length - 1 - i].close)
-                                if ((priceDatas[priceDatas.length - 1 - i].close < priceDatas[priceDatas.length - 1 - i].open)
-                                    && (priceDatas[priceDatas.length - 1 - (i + 1)].high > ema10[ema10.length-1-(i+1)]))//bbResult[resultLength - 1 - (i + 1)].upper)) 
-                                {
-                                    hasHeadFake = true;
-                                    candleHasHeadFakeIdx = i;
-                                  
-                                    //  break;
+                    //    console.log("candleHasLowerEma89Idx "+ candleHasLowerEma89Idx)
+                    if (candleHasLowerEma89IdxArr.length > 0) {
+                        for (var k = 0; k < candleHasLowerEma89IdxArr.length; k++) {
+                            candleHasLowerEma89Idx = candleHasLowerEma89IdxArr.at(k)
+                            if (hasLowerEma89 == true) {
+                                // check xem co headfake chua
+                                for (var i = 0; i < candleHasLowerEma89Idx - 1; i++) {
+                                    // cay nen hien tai la cay nen do
+                                    // cay nen trc do co rau nen gia cao nhat lon hon bb thi la headfake
+                                    try {
+                                        // console.log(" i "+ i + "  "+ priceDatas[priceDatas.length - 1 - i].close)
+                                        if ((priceDatas[priceDatas.length - 1 - i].close < priceDatas[priceDatas.length - 1 - i].open)
+                                            && (priceDatas[priceDatas.length - 1 - (i + 1)].high > ema10[ema10.length - 1 - (i + 1)]))//bbResult[resultLength - 1 - (i + 1)].upper)) 
+                                        {
+                                            hasHeadFake = true;
+                                            candleHasHeadFakeIdx = i;
+
+                                            //  break;
+                                        }
+                                    } catch (err) {
+                                        //	 log_str += err + "  " + coinName + "\n";
+                                        console.log("err 222  " + err + "  i  " + i + "\n");
+                                    }
                                 }
-                            } catch (err) {
-                                //	 log_str += err + "  " + coinName + "\n";
-                                console.log("err 222  " + err + "  i  " + i + "\n");
-                            }
-                        }
-                     //   console.log("hasHeadFake + candleHasHeadFakeIdx  " + candleHasHeadFakeIdx)
-                        var idexForBuy = -1
-                        var hasEnguffing = false
-                        var enguffingCandleIndex = -1
-                        // doi cay nen xanh bat len tren cay nen do
-                        for (var i = idxCheck; i < candleHasHeadFakeIdx; i++) {
+                                //   console.log("hasHeadFake + candleHasHeadFakeIdx  " + candleHasHeadFakeIdx)
+                                var idexForBuy = -1
+                                var hasEnguffing = false
+                                var enguffingCandleIndex = -1
+                                // doi cay nen xanh bat len tren cay nen do
+                                for (var i = idxCheck; i < candleHasHeadFakeIdx; i++) {
 
-                            var twoCandleBullishInput = {
-                                open: [priceDatas[priceDatas.length - 1 - (i + 1)].open, priceDatas[priceDatas.length - 1 - (i)].open],
-                                high: [priceDatas[priceDatas.length - 1 - (i + 1)].high, priceDatas[priceDatas.length - 1 - (i)].high],
-                                close: [priceDatas[priceDatas.length - 1 - (i + 1)].close, priceDatas[priceDatas.length - 1 - (i)].close],
-                                low: [priceDatas[priceDatas.length - 1 - (i + 1)].low, priceDatas[priceDatas.length - 1 - (i)].low],
-                            }
+                                    var twoCandleBullishInput = {
+                                        open: [priceDatas[priceDatas.length - 1 - (i + 1)].open, priceDatas[priceDatas.length - 1 - (i)].open],
+                                        high: [priceDatas[priceDatas.length - 1 - (i + 1)].high, priceDatas[priceDatas.length - 1 - (i)].high],
+                                        close: [priceDatas[priceDatas.length - 1 - (i + 1)].close, priceDatas[priceDatas.length - 1 - (i)].close],
+                                        low: [priceDatas[priceDatas.length - 1 - (i + 1)].low, priceDatas[priceDatas.length - 1 - (i)].low],
+                                    }
 
-                            var result = false;// bullishengulfingpattern(twoCandleBullishInput);
+                                    var result = false;// bullishengulfingpattern(twoCandleBullishInput);
 
-                            if((priceDatas[priceDatas.length-1-i].close > priceDatas[priceDatas.length-1-i].open)
-                            && (priceDatas[priceDatas.length-1-(i+1)].close < priceDatas[priceDatas.length-1-(i+1)].open)
-                            && (priceDatas[priceDatas.length-1-(i+2)].close < priceDatas[priceDatas.length-1-(i+2)].open)
-                            && (priceDatas[priceDatas.length-1-i].close > priceDatas[priceDatas.length-1-(i+2)].open)
-                         && (priceDatas[priceDatas.length-1-(i+1)].low < ema50[ema50.length-1-(i+1)])
-                            )
-                            {
-                                result = true;
-                            }
+                                    if ((priceDatas[priceDatas.length - 1 - i].close > priceDatas[priceDatas.length - 1 - i].open)
+                                        && (priceDatas[priceDatas.length - 1 - (i + 1)].close < priceDatas[priceDatas.length - 1 - (i + 1)].open)
+                                        && (priceDatas[priceDatas.length - 1 - (i + 2)].close < priceDatas[priceDatas.length - 1 - (i + 2)].open)
+                                        && (priceDatas[priceDatas.length - 1 - i].close > priceDatas[priceDatas.length - 1 - (i + 2)].open)
+                                        && (priceDatas[priceDatas.length - 1 - (i + 1)].low < ema50[ema50.length - 1 - (i + 1)])
+                                    ) {
+                                        result = true;
+                                    }
 
-                            if (result == true) {
-                               if (priceDatas[priceDatas.length - 1 - (i + 1)].low <= ema20[ema20.length - 1 - (i+1)])
-                                 {
-                                    enguffingCandleIndex = i;
-                                  //  console.log("price enguffing "+ priceDatas[priceDatas.length-1-enguffingCandleIndex].close)
-                                    hasEnguffing = true;
+                                    if (result == true) {
+                                        if (priceDatas[priceDatas.length - 1 - (i + 1)].low <= ema20[ema20.length - 1 - (i + 1)]) {
+                                            // cay nen  i+1 la cay nen thap nhat nhung van lown hon cay nen co dong cua < ema89
+                                            if ((priceDatas[priceDatas.length - 1 - (i + 1)].close > priceDatas[priceDatas.length - 1 - candleHasLowerEma89Idx].close) 
+                                            && (priceDatas[priceDatas.length - 1 - (i + 1)].close > ema89[ema89.length-1-candleHasLowerEma89Idx] )
+                                            )
+                                            {
+                                                // them 1 dieu kien nua la cay nen i+1 vs cay nho hon ema89 ko co giao cat nao ma ema10 cat len ema20
+                                                var hasEma10OverCutEma20 = false;
+                                                for (var j = i; j < candleHasLowerEma89Idx; j++) {
+                                                    if ((ema10[ema10.length - 1 - j] > ema20[ema20.length - 1 - j])
+                                                        && (ema10[ema10.length - 1 - (j + 1)] < ema20[ema20.length - 1 - (j + 1)])
+                                                    ) {
+                                                        hasEma10OverCutEma20 = true;
+                                                    }
+
+                                                }
+                                                if (hasEma10OverCutEma20 == false) {
+                                                    enguffingCandleIndex = i;
+                                                    //  console.log("price enguffing "+ priceDatas[priceDatas.length-1-enguffingCandleIndex].close)
+                                                    hasEnguffing = true;
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                                if (hasEnguffing == true) {
+                                    if (enguffingCandleIndex <= 3)// && enguffingCandleIndex >0)
+                                    {
+                                        bot.sendMessage(chatId, coinName2 + "  " + timeRequest + " idx buy " + enguffingCandleIndex);
+                                    }
+                                    console.log(coinName2 + "  " + timeRequest + " idx buy " + enguffingCandleIndex)
                                 }
                             }
-                        }
-                        if (hasEnguffing == true) {
-                            if(enguffingCandleIndex <= 3)// && enguffingCandleIndex >0)
-                            {
-                                bot.sendMessage(chatId,coinName2 + "  " + timeRequest + " idx buy " + enguffingCandleIndex);
-                            }
-                            console.log(coinName2 + "  " + timeRequest + " idx buy " + enguffingCandleIndex)
                         }
                     }
                 }
@@ -483,7 +505,7 @@ const updatePrice = async (timeRequest) => {
     let buySuccess = null;
 
     //	await updateEMA();
-    bot.sendMessage(chatId," =============Start 1 vong requets ======" );
+    bot.sendMessage(chatId, " =============Start 1 vong requets ======");
     while (true) {
         log_str = "";
         //	bot.sendMessage(chatId," =============Start 1 vong requets ======" );
@@ -498,7 +520,7 @@ const updatePrice = async (timeRequest) => {
 
         try {
 
-           
+
             await updatePrice("5m");
             await sync();
             await updatePrice("15m");
@@ -510,8 +532,8 @@ const updatePrice = async (timeRequest) => {
             await sync();
             await updatePrice("4h");
             await sync();
-          
-           
+
+
 
             // if (curentSymbolOrder != "") {
             //     checkTp(curentSymbolOrder, curentTimeOfSymbolOrder, curentCommandTypeOfSymbolOrder);
