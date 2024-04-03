@@ -525,13 +525,13 @@ const updatePrice = async (timeRequest) => {
             await sync();
             await updatePrice("15m");
             await sync();
-            await updatePrice("30m");
-            await sync();
-            //
-            await updatePrice("1h");
-            await sync();
-            await updatePrice("4h");
-            await sync();
+            // await updatePrice("30m");
+            // await sync();
+            // //
+            // await updatePrice("1h");
+            // await sync();
+            // await updatePrice("4h");
+            // await sync();
 
 
 
